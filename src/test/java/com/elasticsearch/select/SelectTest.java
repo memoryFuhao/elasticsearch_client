@@ -16,10 +16,11 @@ public class SelectTest {
     public static DataSource dataSource = new DataSource("172.16.1.119", "elastic", "123456");
     
     public static void main(String[] args) {
-        tempTest();
+//        tempTest();
 //        test1();
 //        test2();
 //        test3();
+        test4();
     }
     
     public static void tempTest() {
@@ -123,6 +124,7 @@ public class SelectTest {
             List<Person> scroll = select.scroll(pageSize);
             count += scroll.size();
             if (scroll.size() < pageSize) {
+                select.clear(); // 必须调用此方法清空scrollId
                 break;
             }
         }
