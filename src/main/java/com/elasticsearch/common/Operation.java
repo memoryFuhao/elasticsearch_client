@@ -231,6 +231,9 @@ public abstract class Operation<T> {
         if (EnumFilter.NQ.equals(enumFilter)) {
             addMustNotJson = createNqJson(condition);
         }
+        if (EnumFilter.NO_LIKE.equals(enumFilter)) {
+            addMustNotJson = createLikeJson(condition);
+        }
         if (EnumFilter.EMPTY.equals(enumFilter)) {
             addMustNotJson = createExistsJson(condition);
         }
