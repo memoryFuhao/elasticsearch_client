@@ -30,12 +30,14 @@ import org.apache.commons.collections.CollectionUtils;
  */
 @Data
 @Slf4j
-public class Operation<T> {
+public abstract class Operation<T> {
     
     protected Page page = new Page();// 分页对象
     protected DataSource dataSource;// 数据源
     protected AtomicInteger counter = new AtomicInteger(1);// should条件累加标识位
-    protected Map<Integer, List<Condition>> conditionsMap = Maps.newConcurrentMap();// 查询条件集合
+    protected Map<Integer, List<Condition>> conditionsMap = Maps.newConcurrentMap();// 查询条件must集合
+    protected Map<Integer, List<Condition>> conditionsShouldMap = Maps
+        .newConcurrentMap();// 查询条件should集合
     protected List<Sort> sortsList = Lists.newArrayList();// 排序条件集合
     protected Map<String, String> headerMap = Maps.newHashMap();// header集合
     protected Map<String, String> anFieldMap = Maps.newConcurrentMap();// <注解,字段>映射关系
@@ -55,25 +57,20 @@ public class Operation<T> {
      */
     public Operation<T> addCondition(String fieldName, EnumFilter enumFilter,
         Object... fieldValue) {
-        
-        List<Object> objects = Lists.newArrayList();
-        if (fieldValue.length > 0) {// 可变长参数兼容数组和List
-            Object o = fieldValue[0];
-            if (o instanceof List) {
-                objects = (List<Object>) o;
-            } else if (o instanceof Set) {
-                objects = Lists.newArrayList((Set<Object>) o);
-            } else {
-                objects = Lists.newArrayList(fieldValue);
-            }
-        }
-        Condition condition = new Condition(fieldName, enumFilter, objects);
-        List<Condition> conditions = conditionsMap.get(counter.get());
-        if (null == conditions) {
-            conditions = Lists.newArrayList();
-        }
-        conditions.add(condition);
-        conditionsMap.put(counter.get(), conditions);
+        assembleCondition(conditionsMap, fieldName, enumFilter, fieldValue);
+        return this;
+    }
+    
+    /**
+     * 添加should条件
+     *
+     * @param fieldName 字段名称(必填)
+     * @param enumFilter 过来枚举类型(必填)
+     * @param fieldValue 字段值
+     */
+    public Operation<T> addConditionShould(String fieldName, EnumFilter enumFilter,
+        Object... fieldValue) {
+        assembleCondition(conditionsShouldMap, fieldName, enumFilter, fieldValue);
         return this;
     }
     
@@ -173,50 +170,73 @@ public class Operation<T> {
         JSONObject parJson = createParJson();
         Map<Integer, List<Condition>> conditionsMap = getConditionsMap();
         for (Map.Entry<Integer, List<Condition>> entry : conditionsMap.entrySet()) {
-            JSONObject baseJson = createBaseJson();
+            JSONObject baseJson = createBaseJson(EnumEsKeyword.MUST);
             List<Condition> conditions = entry.getValue();
             for (Condition condition : conditions) {
-                EnumFilter enumFilter = condition.getEnumFilter();
-                
-                JSONObject addMustJson = new JSONObject();
-                if (EnumFilter.TERM.equals(enumFilter)) {
-                    addMustJson = createTermJson(condition);
-                }
-                if (EnumFilter.TERMS.equals(enumFilter)) {
-                    addMustJson = createTermsJson(condition);
-                }
-                if (EnumFilter.GTE.equals(enumFilter) || EnumFilter.LTE.equals(enumFilter)
-                    || EnumFilter.GT.equals(enumFilter) || EnumFilter.LT.equals(enumFilter)) {
-                    addMustJson = createCompareJson(condition);
-                }
-                if (EnumFilter.LIKE.equals(enumFilter)) {
-                    addMustJson = createLikeJson(condition);
-                }
-                if (EnumFilter.RANGE.equals(enumFilter)) {
-                    addMustJson = createRangeJson(condition);
-                }
-                if (EnumFilter.NOT_EMPTY.equals(enumFilter)) {
-                    addMustJson = createExistsJson(condition);
-                }
-                if (!addMustJson.isEmpty()) {
-                    addJsonObjectForMust(addMustJson, baseJson);
-                }
-                
-                JSONObject addMustNotJson = new JSONObject();
-                if (EnumFilter.NQ.equals(enumFilter)) {
-                    addMustNotJson = createNqJson(condition);
-                }
-                if (EnumFilter.EMPTY.equals(enumFilter)) {
-                    addMustNotJson = createExistsJson(condition);
-                }
-                if (!addMustNotJson.isEmpty()) {
-                    addJsonObjectForMustNot(addMustNotJson, baseJson);
-                }
+                analysisEnumFilter(condition, baseJson, EnumEsKeyword.MUST);
             }
+            
+            Integer key = entry.getKey();
+            List<Condition> conditionsShould = conditionsShouldMap.get(key);
+            if (CollectionUtils.isNotEmpty(conditionsShould)) {
+                JSONObject baseShouldJson = createBaseJson(EnumEsKeyword.SHOULD);
+                for (Condition condition : conditionsShould) {
+                    analysisEnumFilter(condition, baseShouldJson, EnumEsKeyword.SHOULD);
+                }
+                addJsonObjectForAndShould(baseJson, baseShouldJson);
+            }
+            
             addJsonObjectForShould(baseJson, parJson);
         }
         addPagePara(parJson);
         return parJson;
+    }
+    
+    /**
+     * 分析过滤条件
+     *
+     * @param condition 过滤条件
+     * @param baseJson 父json串
+     * @param esKeyword 类型
+     */
+    private void analysisEnumFilter(Condition condition, JSONObject baseJson,
+        EnumEsKeyword esKeyword) {
+        EnumFilter enumFilter = condition.getEnumFilter();
+        
+        JSONObject addMustJson = new JSONObject();
+        if (EnumFilter.TERM.equals(enumFilter)) {
+            addMustJson = createTermJson(condition);
+        }
+        if (EnumFilter.TERMS.equals(enumFilter)) {
+            addMustJson = createTermsJson(condition);
+        }
+        if (EnumFilter.GTE.equals(enumFilter) || EnumFilter.LTE.equals(enumFilter)
+            || EnumFilter.GT.equals(enumFilter) || EnumFilter.LT.equals(enumFilter)) {
+            addMustJson = createCompareJson(condition);
+        }
+        if (EnumFilter.LIKE.equals(enumFilter)) {
+            addMustJson = createLikeJson(condition);
+        }
+        if (EnumFilter.RANGE.equals(enumFilter)) {
+            addMustJson = createRangeJson(condition);
+        }
+        if (EnumFilter.NOT_EMPTY.equals(enumFilter)) {
+            addMustJson = createExistsJson(condition);
+        }
+        if (!addMustJson.isEmpty()) {
+            addJsonObjectForMust(addMustJson, baseJson, esKeyword);
+        }
+        
+        JSONObject addMustNotJson = new JSONObject();
+        if (EnumFilter.NQ.equals(enumFilter)) {
+            addMustNotJson = createNqJson(condition);
+        }
+        if (EnumFilter.EMPTY.equals(enumFilter)) {
+            addMustNotJson = createExistsJson(condition);
+        }
+        if (!addMustNotJson.isEmpty()) {
+            addJsonObjectForMustNot(addMustNotJson, baseJson);
+        }
     }
     
     /**
@@ -359,9 +379,10 @@ public class Operation<T> {
         return jsonObject;
     }
     
-    private void addJsonObjectForMust(JSONObject addJson, JSONObject parentJson) {
+    private void addJsonObjectForMust(JSONObject addJson, JSONObject parentJson,
+        EnumEsKeyword esKeyword) {
         JSONObject boolJsonObject = parentJson.getJSONObject(EnumEsKeyword.BOOL.getOpt());
-        JSONArray mustJsonArray = boolJsonObject.getJSONArray(EnumEsKeyword.MUST.getOpt());
+        JSONArray mustJsonArray = boolJsonObject.getJSONArray(esKeyword.getOpt());
         mustJsonArray.add(addJson);
     }
     
@@ -382,21 +403,23 @@ public class Operation<T> {
         mustJsonArray.add(addJson);
     }
     
-    private JSONObject createBaseJson() {
+    private void addJsonObjectForAndShould(JSONObject baseJson, JSONObject baseShouldJson) {
+        JSONObject jsonObject = baseJson.getJSONObject(EnumEsKeyword.BOOL.getOpt());
+        JSONArray jsonArray = jsonObject.getJSONArray(EnumEsKeyword.MUST.getOpt());
+        jsonArray.add(baseShouldJson);
+    }
+    
+    private JSONObject createBaseJson(EnumEsKeyword esKeyword) {
         JSONArray must = new JSONArray();
         JSONObject bool = new JSONObject();
         JSONObject query = new JSONObject();
-        bool.put(EnumEsKeyword.MUST.getOpt(), must);
+        bool.put(esKeyword.getOpt(), must);
         query.put(EnumEsKeyword.BOOL.getOpt(), bool);
         return query;
     }
     
     private JSONObject createParJson() {
-        JSONArray should = new JSONArray();
-        JSONObject bool = new JSONObject();
-        JSONObject query = new JSONObject();
-        bool.put(EnumEsKeyword.SHOULD.getOpt(), should);
-        query.put(EnumEsKeyword.BOOL.getOpt(), bool);
+        JSONObject query = createQueryJson();
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(EnumEsKeyword.QUERY.getOpt(), query);
         if (CollectionUtils.isNotEmpty(sourceList)) {
@@ -412,6 +435,49 @@ public class Operation<T> {
             jsonObject.put(EnumEsKeyword.SORT.getOpt(), sortArr);
         }
         return jsonObject;
+    }
+    
+    private JSONObject createQueryJson() {
+        JSONArray should = new JSONArray();
+        JSONObject bool = new JSONObject();
+        JSONObject query = new JSONObject();
+        bool.put(EnumEsKeyword.SHOULD.getOpt(), should);
+        query.put(EnumEsKeyword.BOOL.getOpt(), bool);
+        return query;
+    }
+    
+    /**
+     * 创建查询条件对象
+     */
+    private Condition createCondition(String fieldName, EnumFilter enumFilter,
+        Object... fieldValue) {
+        List<Object> objects = Lists.newArrayList();
+        if (fieldValue.length > 0) {// 可变长参数兼容数组和List
+            Object o = fieldValue[0];
+            if (o instanceof List) {
+                objects = (List<Object>) o;
+            } else if (o instanceof Set) {
+                objects = Lists.newArrayList((Set<Object>) o);
+            } else {
+                objects = Lists.newArrayList(fieldValue);
+            }
+        }
+        Condition condition = new Condition(fieldName, enumFilter, objects);
+        return condition;
+    }
+    
+    /**
+     * 组装查询条件
+     */
+    private void assembleCondition(Map<Integer, List<Condition>> map, String fieldName,
+        EnumFilter enumFilter, Object... fieldValue) {
+        Condition condition = createCondition(fieldName, enumFilter, fieldValue);
+        List<Condition> conditions = map.get(counter.get());
+        if (null == conditions) {
+            conditions = Lists.newArrayList();
+        }
+        conditions.add(condition);
+        map.put(counter.get(), conditions);
     }
     
 }
