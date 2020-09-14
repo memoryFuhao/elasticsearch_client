@@ -2,7 +2,7 @@
 ---------------------------------------------------------
 
 /**
- * 数据插入(插入对象为com.elasticsearch.vo.Person)
+ * 数据插入(插入对象为src/test/com.elasticsearch.vo.Person)
  * 参考示例代码：src/test/com.elasticsearch.insert.InsertTest.test1()
  */
 ---------------------------------------------------------
