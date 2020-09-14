@@ -14,7 +14,7 @@ public class InsertTest {
     }
     
     /**
-     * 数据插入
+     * 数据插入(插入对象为com.elasticsearch.vo.Person)
      */
     public static void test1(){
         
