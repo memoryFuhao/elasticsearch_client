@@ -86,7 +86,6 @@ public class HttpClientUtil {
         return responseContent;
     }
     
-    
     /**
      * 添加请求头信息
      *
