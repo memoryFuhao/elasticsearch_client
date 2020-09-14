@@ -1,4 +1,4 @@
-# elasticsearch_client (elasticsearch orm 框架, 支持CRUD操作)
+# elasticsearch_client (elasticsearch orm 框架, CRUD支持)
 ---------------------------------------------------------
 
 /**
