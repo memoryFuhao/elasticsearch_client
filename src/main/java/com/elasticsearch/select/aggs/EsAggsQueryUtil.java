@@ -84,20 +84,16 @@ public class EsAggsQueryUtil {
             ConditionAggs conditionAggs = conditionAggsList.get(i);
             String opt = conditionAggs.getEsAggsEnum().getOpt();
             
-            if (EnumEsAggs.GROUPBY.getOpt().equalsIgnoreCase(opt)
+            if (groupByFlag && (EnumEsAggs.GROUPBY.getOpt().equalsIgnoreCase(opt)
                 || EnumEsAggs.HAVING.getOpt().equalsIgnoreCase(opt)
                 || EnumEsAggs.LIMIT.getOpt().equalsIgnoreCase(opt)
                 || EnumEsAggs.SORT.getOpt().equalsIgnoreCase(opt)
-                || EnumEsAggs.SIZE.getOpt().equalsIgnoreCase(opt)) {
-                if (groupByFlag) {
-                    createAggsQueryByGroupField(conditionAggs, aggsVo);
-                }
+                || EnumEsAggs.SIZE.getOpt().equalsIgnoreCase(opt))) {
+                createAggsQueryByGroupField(conditionAggs, aggsVo);
             }
             
-            if (EnumEsAggs.GROUPBYDATE.toString().equalsIgnoreCase(opt)) {
-                if (groupByDateFlag) {
-                    createAggsQueryByGroupDate(conditionAggs, aggsVo);
-                }
+            if (EnumEsAggs.GROUPBYDATE.toString().equalsIgnoreCase(opt) && groupByDateFlag) {
+                createAggsQueryByGroupDate(conditionAggs, aggsVo);
             }
         }
         addSource(aggsVo, sourceList);
