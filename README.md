@@ -46,6 +46,16 @@
   * scroll遍历(支持条件过滤后获取全部数据 || 遍历索引全部数据)
   * 参考示例代码：src/test/com.elasticsearch.select.SelectTest.test4()
   */
+
+ /**
+  * 嵌套分组查询(先根据时间分组,然后很据字段分组)
+  * 参考示例代码：src/test/com.elasticsearch.select.SelectTest.test5()
+  */
+
+ /**
+  * 嵌套分组查询(先根据字段分组,然后很据时间分组)
+  * 参考示例代码：src/test/com.elasticsearch.select.SelectTest.test6()
+  */
 ---------------------------------------------------------
 
   
