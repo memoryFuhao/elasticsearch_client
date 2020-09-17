@@ -14,7 +14,19 @@ public enum EnumEsKeyword {
     SIZE("size"),
     SOURCE("_source"),
     SORT("sort"),
-    FIELD("field");
+    FIELD("field"),
+    HITS("hits"),
+    TOP("top"),
+    TOP_HITS("top_hits"),
+    AGGS("aggs"),
+    SCRIPT("script"),
+    TOTAL("total"),
+    SCROLL("scroll"),
+    SCROLL_ID("scroll_id"),
+    _SCROLL_ID("_scroll_id"),
+    VALUE("value"),
+    GROUPBY_FIELD("groupByField"),
+    GROUPBY_DATE("groupByDate");
     
     private String opt;
     

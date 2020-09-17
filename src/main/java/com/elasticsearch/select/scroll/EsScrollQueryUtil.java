@@ -2,6 +2,7 @@ package com.elasticsearch.select.scroll;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.elasticsearch.common.enums.EnumEsKeyword;
 import com.elasticsearch.common.util.HttpClientUtil;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -53,8 +54,9 @@ public class EsScrollQueryUtil {
         throws Exception {
         // 获取srcollId和数据
         String url = getUrl(indexName, ip, port, scrollTime);
-        queryObj.put("size", size);
-        queryObj.remove("from");
+        queryObj.put(EnumEsKeyword.SIZE.getOpt(), size);
+        queryObj.remove(EnumEsKeyword.FROM.getOpt());
+        
         log.info("====scroll query url is:{} \n queryStr is:{}", url, queryObj.toJSONString());
         
         String queryStr = queryObj.toJSONString();
@@ -70,8 +72,8 @@ public class EsScrollQueryUtil {
         String url = getUrl(indexName, ip, port, scrollTime);
         
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("scroll", scrollTime);
-        jsonObject.put("scroll_id", this.scrollId);
+        jsonObject.put(EnumEsKeyword.SCROLL.getOpt(), scrollTime);
+        jsonObject.put(EnumEsKeyword.SCROLL_ID.getOpt(), this.scrollId);
         String queryStr = jsonObject.toJSONString();
         log.info("====scroll query url is:{} \n queryStr is:{}", url, queryStr);
         
@@ -88,13 +90,13 @@ public class EsScrollQueryUtil {
             return list;
         }
         
-        this.scrollId = jsonObject.getString("_scroll_id");
+        this.scrollId = jsonObject.getString(EnumEsKeyword._SCROLL_ID.getOpt());
         
-        JSONObject parentHits = jsonObject.getJSONObject("hits");
+        JSONObject parentHits = jsonObject.getJSONObject(EnumEsKeyword.HITS.getOpt());
         if (null == parentHits) {
             return list;
         }
-        JSONArray subHits = parentHits.getJSONArray("hits");
+        JSONArray subHits = parentHits.getJSONArray(EnumEsKeyword.HITS.getOpt());
         if (null == subHits) {
             return list;
         }
@@ -102,7 +104,7 @@ public class EsScrollQueryUtil {
         for (int i = 0; i < subHits.size(); i++) {
             JSONObject object = subHits.getJSONObject(i);
             String id = object.getString("_id");
-            JSONObject source = object.getJSONObject("_source");
+            JSONObject source = object.getJSONObject(EnumEsKeyword.SOURCE.getOpt());
             source.put("id", id);
             list.add(source);
         }

@@ -2,6 +2,7 @@ package com.elasticsearch.update;
 
 import com.alibaba.fastjson.JSONObject;
 import com.elasticsearch.common.Operation;
+import com.elasticsearch.common.enums.EnumEsKeyword;
 import com.elasticsearch.common.util.HttpClientUtil;
 import com.elasticsearch.common.vo.DataSource;
 import lombok.Data;
@@ -32,9 +33,9 @@ public class Update<T> extends Operation {
         scriptJson.put("source", "ctx._source." + fieldName + "=\"" + fieldVal + "\"");
         
         JSONObject jsonObject = analysisParaJson();
-        jsonObject.remove("from");
-        jsonObject.remove("size");
-        jsonObject.put("script", scriptJson);
+        jsonObject.remove(EnumEsKeyword.FROM.getOpt());
+        jsonObject.remove(EnumEsKeyword.SIZE.getOpt());
+        jsonObject.put(EnumEsKeyword.SCRIPT.getOpt(), scriptJson);
         
         String url = getUrl("_update_by_query");
         String postBody = jsonObject.toJSONString();

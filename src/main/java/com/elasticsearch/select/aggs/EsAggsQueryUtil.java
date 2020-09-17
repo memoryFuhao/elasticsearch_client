@@ -4,12 +4,15 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.elasticsearch.common.enums.EnumEsAggs;
+import com.elasticsearch.common.enums.EnumEsKeyword;
 import com.elasticsearch.common.enums.EnumFilter;
 import com.elasticsearch.common.util.HttpClientUtil;
 import com.elasticsearch.common.vo.ConditionAggs;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * es分组查询工具类
@@ -18,36 +21,32 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EsAggsQueryUtil {
     
-    private static final String GROUPBY_FIELD_STR = "groupByField";
-    private static final String GROUPBY_DATE_STR = "groupByDate";
     private static final String SPLIT = ",";
     
     /**
      * es分组查询通用方法
+     *
+     * @param conditionAggsList 分组条件集合
+     * @param conditionAggsNestList 嵌套分组条件集合
+     * @param boolVo 过滤条件json串
+     * @param index 索引名称
+     * @param esHost es ip地址
+     * @param esPort es端口
+     * @param headerMap header集合
+     * @param sourceList 返回字段集合
      */
-    public String aggsQuery(List<ConditionAggs> conditionAggsList, JSONObject boolVo, String index,
-        String esHost, String esPort, Map<String, String> headerMap) {
+    public String aggsQuery(List<ConditionAggs> conditionAggsList,
+        List<ConditionAggs> conditionAggsNestList, JSONObject boolVo, String index,
+        String esHost, String esPort, Map<String, String> headerMap, List<String> sourceList) {
         
         EsAggsQueryUtil esQueryUtil = new EsAggsQueryUtil();
-        String result = esQueryUtil.createResponse("0", "Success").toJSONString();
+        String result = StringUtils.EMPTY;
         try {
-            JSONObject aggsVo = esQueryUtil.createAggsVo();
-            for (int i = 0; i < conditionAggsList.size(); i++) {
-                ConditionAggs conditionAggs = conditionAggsList.get(i);
-                String opt = conditionAggs.getEsAggsEnum().getOpt();
-                
-                if (EnumEsAggs.GROUPBY.getOpt().equalsIgnoreCase(opt)
-                    || EnumEsAggs.HAVING.getOpt().equalsIgnoreCase(opt)
-                    || EnumEsAggs.LIMIT.getOpt().equalsIgnoreCase(opt)
-                    || EnumEsAggs.SORT.getOpt().equalsIgnoreCase(opt)
-                    || EnumEsAggs.SIZE.getOpt().equalsIgnoreCase(opt)) {
-                    
-                    esQueryUtil.createAggsQueryByGroupField(conditionAggs, aggsVo);
-                }
-                
-                if (EnumEsAggs.GROUPBYDATE.toString().equalsIgnoreCase(opt)) {
-                    esQueryUtil.createAggsQueryByGroupDate(conditionAggs, aggsVo);
-                }
+            JSONObject aggsVo = createAggsVo(conditionAggsList, sourceList);
+            if (CollectionUtils.isNotEmpty(conditionAggsNestList)) {
+                JSONObject aggsVoNest = createAggsVo(conditionAggsNestList, sourceList);
+                putConditionAggsNest(aggsVo, aggsVoNest, EnumEsKeyword.GROUPBY_FIELD);
+                putConditionAggsNest(aggsVo, aggsVoNest, EnumEsKeyword.GROUPBY_DATE);
             }
             
             String requestUrl = esQueryUtil.createRequestUrl(index, esHost, esPort);
@@ -55,11 +54,89 @@ public class EsAggsQueryUtil {
             
         } catch (Exception e) {
             log.error("======groupBy query exception:", e);
-            JSONObject failResult = esQueryUtil.createResponse("-1", "Fail");
-            return failResult.toJSONString();
+            result = createResponse("-1", "Fail").toJSONString();
         }
         
         return result;
+    }
+    
+    /**
+     * 组装分组嵌套json串
+     *
+     * @param aggsVo 分组父条件
+     * @param aggsVoNest 分组子条件
+     * @param enumEsKeyword 分组类型
+     */
+    private void putConditionAggsNest(JSONObject aggsVo, JSONObject aggsVoNest,
+        EnumEsKeyword enumEsKeyword) {
+        JSONObject jsonObject = aggsVo.getJSONObject(enumEsKeyword.getOpt());
+        if (null != jsonObject) {
+            jsonObject.put(EnumEsKeyword.AGGS.getOpt(), aggsVoNest);
+        }
+    }
+    
+    private JSONObject createAggsVo(List<ConditionAggs> conditionAggsList,
+        List<String> sourceList) {
+        JSONObject aggsVo = new JSONObject();
+        for (int i = 0; i < conditionAggsList.size(); i++) {
+            ConditionAggs conditionAggs = conditionAggsList.get(i);
+            String opt = conditionAggs.getEsAggsEnum().getOpt();
+            
+            if (EnumEsAggs.GROUPBY.getOpt().equalsIgnoreCase(opt)
+                || EnumEsAggs.HAVING.getOpt().equalsIgnoreCase(opt)
+                || EnumEsAggs.LIMIT.getOpt().equalsIgnoreCase(opt)
+                || EnumEsAggs.SORT.getOpt().equalsIgnoreCase(opt)
+                || EnumEsAggs.SIZE.getOpt().equalsIgnoreCase(opt)) {
+                
+                createAggsQueryByGroupField(conditionAggs, aggsVo);
+            }
+            
+            if (EnumEsAggs.GROUPBYDATE.toString().equalsIgnoreCase(opt)) {
+                createAggsQueryByGroupDate(conditionAggs, aggsVo);
+            }
+        }
+        addSource(aggsVo, sourceList);
+        return aggsVo;
+    }
+    
+    /**
+     * 指定返回数据的字段列表
+     *
+     * @param aggsVo 分组查询json串
+     * @param sourceList 返回字段列表
+     */
+    private void addSource(JSONObject aggsVo, List<String> sourceList) {
+        checkAndAddSource(aggsVo, sourceList, EnumEsKeyword.GROUPBY_DATE.getOpt());
+        checkAndAddSource(aggsVo, sourceList, EnumEsKeyword.GROUPBY_FIELD.getOpt());
+    }
+    
+    /**
+     * 判断分组后是否需要返回数据, 需要返回数据时则指定返回数据的字段列表
+     *
+     * @param aggsVo 分组查询json串
+     * @param sourceList 返回字段列表
+     * @param groupByType 分组类型
+     */
+    private void checkAndAddSource(JSONObject aggsVo, List<String> sourceList, String groupByType) {
+        if (CollectionUtils.isEmpty(sourceList)) {
+            return;
+        }
+        JSONObject jsonObject = aggsVo.getJSONObject(groupByType);
+        if (null == jsonObject) {
+            return;
+        }
+        JSONObject aggs = jsonObject.getJSONObject(EnumEsKeyword.AGGS.getOpt());
+        if (null == aggs) {
+            return;
+        }
+        JSONObject top = aggs.getJSONObject(EnumEsKeyword.TOP.getOpt());
+        if (null == top) {
+            return;
+        }
+        JSONObject topHits = top.getJSONObject(EnumEsKeyword.TOP_HITS.getOpt());
+        if (null != topHits) {
+            topHits.put(EnumEsKeyword.SOURCE.getOpt(), sourceList);
+        }
     }
     
     /**
@@ -69,7 +146,7 @@ public class EsAggsQueryUtil {
      * @param aggsVo 分组条件
      * @param requestUrl 请求url
      */
-    public String getResponseStr(JSONObject boolVo, JSONObject aggsVo, String requestUrl,
+    private String getResponseStr(JSONObject boolVo, JSONObject aggsVo, String requestUrl,
         Map<String, String> headerMap) throws Exception {
         
         String result;
@@ -92,8 +169,8 @@ public class EsAggsQueryUtil {
      * @param boolVo 过滤条件
      * @param aggsVo 分组条件
      */
-    public JSONObject createRequestBody(JSONObject boolVo, JSONObject aggsVo) {
-        boolVo.put("aggs", aggsVo);
+    private JSONObject createRequestBody(JSONObject boolVo, JSONObject aggsVo) {
+        boolVo.put(EnumEsKeyword.AGGS.getOpt(), aggsVo);
         return boolVo;
     }
     
@@ -104,70 +181,41 @@ public class EsAggsQueryUtil {
      * @param esHost es ip
      * @param esPort es port
      */
-    public String createRequestUrl(String index, String esHost, String esPort) {
+    private String createRequestUrl(String index, String esHost, String esPort) {
         StringBuilder url = new StringBuilder(
             "http://" + esHost + ":" + esPort + "/" + index + "/_search");
         return url.toString();
     }
     
-    public JSONObject createAggsVo() {
-        return new JSONObject();
-    }
-    
-    public JSONObject createAggsQueryByGroupDate(ConditionAggs conditionAggs, JSONObject aggsVo) {
+    private void createAggsQueryByGroupDate(ConditionAggs conditionAggs, JSONObject aggsVo) {
         
-        createDefaultAggs(aggsVo, GROUPBY_DATE_STR);
+        createDefaultAggs(aggsVo, EnumEsKeyword.GROUPBY_DATE.getOpt());
         
         String field = conditionAggs.getFieldName();
         Object value = conditionAggs.getValue();
         
-        JSONObject groupByDate = aggsVo.getJSONObject(GROUPBY_DATE_STR);
+        JSONObject groupByDate = aggsVo.getJSONObject(EnumEsKeyword.GROUPBY_DATE.getOpt());
         JSONObject jsonObjectSub = new JSONObject();
         
-        jsonObjectSub.put(EnumEsAggs.FIELD.getOpt(), field);
+        jsonObjectSub.put(EnumEsKeyword.FIELD.getOpt(), field);
         jsonObjectSub.put("interval", value);
         
         groupByDate.put("date_histogram", jsonObjectSub);
         
-        aggsVo.put(GROUPBY_DATE_STR, groupByDate);
-        return groupByDate;
+        aggsVo.put(EnumEsKeyword.GROUPBY_DATE.getOpt(), groupByDate);
     }
     
-    public JSONObject createDefaultAggs(JSONObject aggsVo, String groupByStr) {
+    private void createAggsQueryByGroupField(ConditionAggs conditionAggs, JSONObject aggsVo) {
         
-        JSONObject jsonObject = aggsVo.getJSONObject(groupByStr);
+        createDefaultAggs(aggsVo, EnumEsKeyword.GROUPBY_FIELD.getOpt());
         
-        if (null != jsonObject) {
-            return aggsVo;
-        }
-        
-        JSONObject parentJsonObject = new JSONObject();
-        JSONObject aggsJsonObject = new JSONObject();
-
-//        JSONObject topJsonObject = new JSONObject();
-//        JSONObject topHitsJsonObject = new JSONObject();
-//        topHitsJsonObject.put("size", 1);
-//        topJsonObject.put(EsAggsEnum.TOP_HITS.getOpt(), topHitsJsonObject);
-//        aggsJsonObject.put("top", topJsonObject);
-        
-        parentJsonObject.put("aggs", aggsJsonObject);
-        
-        aggsVo.put(groupByStr, parentJsonObject);
-        return parentJsonObject;
-    }
-    
-    public JSONObject createAggsQueryByGroupField(ConditionAggs conditionAggs, JSONObject aggsVo) {
-        
-        createDefaultAggs(aggsVo, GROUPBY_FIELD_STR);
-        
-//        String fieldStr = EnumEsAggs.FIELD.getOpt();
         String type = conditionAggs.getEsAggsEnum().toString();
         Object value = conditionAggs.getValue();
         String field = conditionAggs.getFieldName();
         JSONObject jsonObjectParent = new JSONObject();
         
-        JSONObject jsonGroupByField = aggsVo.getJSONObject(GROUPBY_FIELD_STR);
-        JSONObject aggsSub = jsonGroupByField.getJSONObject("aggs");
+        JSONObject jsonGroupByField = aggsVo.getJSONObject(EnumEsKeyword.GROUPBY_FIELD.getOpt());
+        JSONObject aggsSub = jsonGroupByField.getJSONObject(EnumEsKeyword.AGGS.getOpt());
         JSONObject terms = jsonGroupByField.getJSONObject(EnumFilter.TERMS.getOpt());
         
         if (EnumEsAggs.GROUPBY.toString().equalsIgnoreCase(type) ||
@@ -184,8 +232,7 @@ public class EsAggsQueryUtil {
                     scriptStr += "doc." + tempField + "+''+";
                 }
                 scriptStr = scriptStr.substring(0, scriptStr.length() - 4);
-//                jsonObjectParent.put(fieldStr, field);
-                jsonObjectParent.put(EnumEsAggs.SCRIPT.getOpt(),scriptStr);
+                jsonObjectParent.put(EnumEsKeyword.SCRIPT.getOpt(), scriptStr);
                 jsonGroupByField.put(EnumFilter.TERMS.getOpt(), jsonObjectParent);
             }
             
@@ -201,41 +248,55 @@ public class EsAggsQueryUtil {
             jsonObjectScript.put("source", "params.havingCount >= " + value);
             
             jsonObjectBucketSelector.put("buckets_path", jsonObjectBucketsPath);
-            jsonObjectBucketSelector.put("script", jsonObjectScript);
+            jsonObjectBucketSelector.put(EnumEsKeyword.SCRIPT.getOpt(), jsonObjectScript);
             
             jsonObjectParent.put("bucket_selector", jsonObjectBucketSelector);
             
-            aggsSub.put("having", jsonObjectParent);
+            aggsSub.put(EnumEsAggs.HAVING.getOpt(), jsonObjectParent);
             
         } else if (EnumEsAggs.LIMIT.toString().equalsIgnoreCase(type)
             || EnumEsAggs.SORT.toString().equalsIgnoreCase(type)) {
             
-            JSONObject jsonTop = aggsSub.getJSONObject("top");
+            JSONObject jsonTop = aggsSub.getJSONObject(EnumEsKeyword.TOP.getOpt());
             if (null == jsonTop) {
                 jsonTop = new JSONObject();
             }
             
-            JSONObject jsonTopHits = jsonTop.getJSONObject(EnumEsAggs.TOP_HITS.getOpt());
+            JSONObject jsonTopHits = jsonTop.getJSONObject(EnumEsKeyword.TOP_HITS.getOpt());
             if (null == jsonTopHits) {
                 jsonTopHits = new JSONObject();
             }
             
             if (EnumEsAggs.LIMIT.toString().equalsIgnoreCase(type)) {
-                jsonTopHits.put("size", value);
+                jsonTopHits.put(EnumEsKeyword.SIZE.getOpt(), value);
             } else {
                 JSONObject jsonSort = new JSONObject();
                 jsonSort.put(String.valueOf(field), String.valueOf(value));
-                jsonTopHits.put("sort", jsonSort);
+                jsonTopHits.put(EnumEsKeyword.SORT.getOpt(), jsonSort);
             }
             
-            jsonTop.put(EnumEsAggs.TOP_HITS.getOpt(), jsonTopHits);
-            aggsSub.put("top", jsonTop);
+            jsonTop.put(EnumEsKeyword.TOP_HITS.getOpt(), jsonTopHits);
+            aggsSub.put(EnumEsKeyword.TOP.getOpt(), jsonTop);
         }
-        
-        return jsonObjectParent;
     }
     
-    public JSONArray analysisAggs(JSONObject jsonResultParent, JSONObject jsonAggs,
+    private void createDefaultAggs(JSONObject aggsVo, String groupByStr) {
+        
+        JSONObject jsonObject = aggsVo.getJSONObject(groupByStr);
+        
+        if (null != jsonObject) {
+            return;
+        }
+        
+        JSONObject parentJsonObject = new JSONObject();
+        JSONObject aggsJsonObject = new JSONObject();
+        
+        parentJsonObject.put(EnumEsKeyword.AGGS.getOpt(), aggsJsonObject);
+        
+        aggsVo.put(groupByStr, parentJsonObject);
+    }
+    
+    private JSONArray analysisAggs(JSONObject jsonResultParent, JSONObject jsonAggs,
         String groupByStr) {
         
         JSONArray jsonResultSub = new JSONArray();
@@ -260,17 +321,18 @@ public class EsAggsQueryUtil {
             JSONObject bucketsJSONObject = buckets.getJSONObject(i);
             String groupByKey = bucketsJSONObject.getString("key");
             Long groupByCount = bucketsJSONObject.getLong("doc_count");
-            JSONObject top = bucketsJSONObject.getJSONObject("top");
+            JSONObject top = bucketsJSONObject.getJSONObject(EnumEsKeyword.TOP.getOpt());
             
             if (null != top) {
-                JSONObject parentHits = top.getJSONObject("hits");
-                JSONArray subHits = parentHits.getJSONArray("hits");
+                JSONObject parentHits = top.getJSONObject(EnumEsKeyword.HITS.getOpt());
+                JSONArray subHits = parentHits.getJSONArray(EnumEsKeyword.HITS.getOpt());
                 JSONArray jsonResultHits = new JSONArray();
                 for (int j = 0; j < subHits.size(); j++) {
-                    JSONObject source = subHits.getJSONObject(j).getJSONObject("_source");
+                    JSONObject source = subHits.getJSONObject(j)
+                        .getJSONObject(EnumEsKeyword.SOURCE.getOpt());
                     jsonResultHits.add(source);
                 }
-                jsonResultBucket.put("hits", jsonResultHits);
+                jsonResultBucket.put(EnumEsKeyword.HITS.getOpt(), jsonResultHits);
             }
             
             jsonResultBucket.put("groupByKey", groupByKey);
@@ -285,13 +347,13 @@ public class EsAggsQueryUtil {
         
     }
     
-    public JSONObject getResult(JSONObject jsonObject) {
+    private JSONObject getResult(JSONObject jsonObject) {
         JSONObject jsonResultParent = createResponse("0", "Success");
         
         try {
             
-            analysisAggs(jsonResultParent, jsonObject, GROUPBY_FIELD_STR);
-            analysisAggs(jsonResultParent, jsonObject, GROUPBY_DATE_STR);
+            analysisAggs(jsonResultParent, jsonObject, EnumEsKeyword.GROUPBY_FIELD.getOpt());
+            analysisAggs(jsonResultParent, jsonObject, EnumEsKeyword.GROUPBY_DATE.getOpt());
             
         } catch (Exception e) {
             log.error("======analysis groupBy query result exception:", e);
@@ -301,7 +363,7 @@ public class EsAggsQueryUtil {
         return jsonResultParent;
     }
     
-    public JSONObject createResponse(String ret, String desc) {
+    private JSONObject createResponse(String ret, String desc) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("ret", ret);
         jsonObject.put("desc", desc);

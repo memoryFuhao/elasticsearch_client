@@ -31,6 +31,7 @@ public class Select<T> extends Operation {
     private EsScrollQueryUtil esScrollQueryUtil = new EsScrollQueryUtil();// 全量遍历对象
     private EsAggsQueryUtil esAggsQueryUtil = new EsAggsQueryUtil();// 分组查询对象
     private List<ConditionAggs> conditionAggsList = Lists.newArrayList();// 分组条件集合
+    private List<ConditionAggs> conditionAggsNestList = Lists.newArrayList();// 嵌套分组条件集合
     
     public static <T> Select<T> from(Class<T> tClass, DataSource dataSource) {
         Select select = new Select();
@@ -53,6 +54,19 @@ public class Select<T> extends Operation {
     }
     
     /**
+     * 添加嵌套分组条件(相当于嵌套分组查询)
+     *
+     * @param esAggsEnum 分组操作内容
+     * @param fieldName 字段名称(可为null)
+     * @param value 字段内容(可为null)
+     */
+    public Select<T> addConditionAggsNest(EnumEsAggs esAggsEnum, String fieldName, Object value) {
+        ConditionAggs conditionAggs = new ConditionAggs(esAggsEnum, fieldName, value);
+        conditionAggsNestList.add(conditionAggs);
+        return this;
+    }
+    
+    /**
      * 执行分组查询
      *
      * @return 分组结果json串
@@ -64,8 +78,9 @@ public class Select<T> extends Operation {
         DataSource ds = this.getDataSource();
         int anInt = RandomUtil.getInt(ds.getIps().length);
         String result = esAggsQueryUtil
-            .aggsQuery(this.conditionAggsList, jsonObject, getIndexNameStr(), ds.getIps()[anInt],
-                ds.getPort(), this.getHeaderMap());
+            .aggsQuery(this.conditionAggsList, this.conditionAggsNestList, jsonObject,
+                getIndexNameStr(), ds.getIps()[anInt], ds.getPort(), this.getHeaderMap(),
+                sourceList);
         return result;
     }
     
@@ -111,8 +126,9 @@ public class Select<T> extends Operation {
         try {
             String s = HttpClientUtil.doPost(url, postBody, this.getHeaderMap());
             JSONObject jsonObject = JSONObject.parseObject(s);
-            JSONObject hits = jsonObject.getJSONObject("hits");
-            result = hits.getLongValue("total");
+            JSONObject hits = jsonObject.getJSONObject(EnumEsKeyword.HITS.getOpt());
+            
+            result = hits.getLongValue(EnumEsKeyword.TOTAL.getOpt());
         } catch (Exception e) {
             log.error("====getTotalCount exception,url :{} body:{}", url, postBody, e);
         }
@@ -135,12 +151,11 @@ public class Select<T> extends Operation {
                 String s = HttpClientUtil.doPost(url, postBody, this.getHeaderMap());
                 JSONObject jsonObject = JSONObject.parseObject(s);
                 
-                JSONObject hits = jsonObject.getJSONObject("hits");
-//                long total = hits.getLongValue("total");
-                JSONArray hitsArray = hits.getJSONArray("hits");
+                JSONObject hits = jsonObject.getJSONObject(EnumEsKeyword.HITS.getOpt());
+                JSONArray hitsArray = hits.getJSONArray(EnumEsKeyword.HITS.getOpt());
                 for (int i = 0; i < hitsArray.size(); i++) {
                     JSONObject object = hitsArray.getJSONObject(i);
-                    String source = object.getString("_source");
+                    String source = object.getString(EnumEsKeyword.SOURCE.getOpt());
                     String sourceRes = analysisSource(source);
                     T o = (T) JSONObject.parseObject(sourceRes, this.getVo().getClass());
                     lists.add(o);
@@ -155,18 +170,18 @@ public class Select<T> extends Operation {
                     count += Page.SCROLL_SIZE;
                     JSONObject jsonObject = JSONObject.parseObject(s);
                     if (i == 1) {
-                        scrollId = jsonObject.getString("_scroll_id");
+                        scrollId = jsonObject.getString(EnumEsKeyword._SCROLL_ID.getOpt());
                         JSONObject scroll_id = new JSONObject();
-                        scroll_id.put("scroll_id", scrollId);
-                        scroll_id.put("scroll", page.SCROLL);
+                        scroll_id.put(EnumEsKeyword.SCROLL_ID.getOpt(), scrollId);
+                        scroll_id.put(EnumEsKeyword.SCROLL.getOpt(), page.SCROLL);
                         postBody = scroll_id.toJSONString();
                         url = getScrollUrl();
                     } else {
                         if (count < page.getFrom()) {
                             continue;
                         }
-                        JSONObject hits = jsonObject.getJSONObject("hits");
-                        JSONArray hitsArray = hits.getJSONArray("hits");
+                        JSONObject hits = jsonObject.getJSONObject(EnumEsKeyword.HITS.getOpt());
+                        JSONArray hitsArray = hits.getJSONArray(EnumEsKeyword.HITS.getOpt());
                         int start = page.getFrom() - (i - 1) * Page.SCROLL_SIZE;
                         start = start < 0 ? 0 : start;
                         int end = start + page.getPageSize() - lists.size();
@@ -178,7 +193,7 @@ public class Select<T> extends Operation {
                             .parseArray(JSONObject.toJSONString(objects));
                         for (int j = 0; j < hitsArraySub.size(); j++) {
                             JSONObject object = hitsArraySub.getJSONObject(j);
-                            String source = object.getString("_source");
+                            String source = object.getString(EnumEsKeyword.SOURCE.getOpt());
                             String sourceRes = analysisSource(source);
                             T o = (T) JSONObject.parseObject(sourceRes, this.getVo().getClass());
                             lists.add(o);

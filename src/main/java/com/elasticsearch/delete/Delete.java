@@ -2,6 +2,7 @@ package com.elasticsearch.delete;
 
 import com.alibaba.fastjson.JSONObject;
 import com.elasticsearch.common.Operation;
+import com.elasticsearch.common.enums.EnumEsKeyword;
 import com.elasticsearch.common.util.HttpClientUtil;
 import com.elasticsearch.common.vo.DataSource;
 import lombok.Data;
@@ -27,8 +28,8 @@ public class Delete<T> extends Operation {
      */
     public String deleteByQuery() {
         JSONObject jsonObject = analysisParaJson();
-        jsonObject.remove("from");
-        jsonObject.remove("size");
+        jsonObject.remove(EnumEsKeyword.FROM.getOpt());
+        jsonObject.remove(EnumEsKeyword.SIZE.getOpt());
         String postBody = jsonObject.toJSONString();
         String url = getUrl("_delete_by_query?pretty");
         log.info("====【DeleteByQuery execute】 url is:{} \n postBody is: {}", url, postBody);
