@@ -1,4 +1,4 @@
-curl -H "Content-Type: application/json" -H "Authorization: Basic ZWxhc3RpYzoxMjM0NTY=" -XPUT "http://$IP:9200/archive_title_result" -d'
+curl -H "Content-Type: application/json" -H "Authorization: Basic ZWxhc3RpYzoxMjM0NTY=" -XPUT "http://172.16.1.119:9200/person_index" -d'
 {
     "mappings": {
         "data": {
@@ -14,7 +14,11 @@ curl -H "Content-Type: application/json" -H "Authorization: Basic ZWxhc3RpYzoxMj
                 },
                 "hobby": {
                     "type": "keyword"
+                },
+                "date_time": {
+                    "type": "date"
                 }
+
             }
         }
     }

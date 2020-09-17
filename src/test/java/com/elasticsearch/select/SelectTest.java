@@ -6,6 +6,7 @@ import com.elasticsearch.common.enums.EnumFilter;
 import com.elasticsearch.common.enums.EnumSort;
 import com.elasticsearch.common.vo.DataSource;
 import com.elasticsearch.vo.Person;
+import com.elasticsearch.vo.VehicleResultData;
 import java.util.List;
 
 /**
@@ -20,18 +21,27 @@ public class SelectTest {
 //        test1();
 //        test2();
 //        test3();
-        test4();
+//        test4();
+        test5();
     }
     
     public static void tempTest() {
-        Select<Person> from = Select.from(Person.class, dataSource);
+        Select<Person> select = Select.from(Person.class, dataSource);
         
-        from.addCondition("age", EnumFilter.RANGE, 10, 100)
-            .addConditionShould("age", EnumFilter.TERMS, 50, 55, 66)
-            .addConditionShould("hobby", EnumFilter.NO_LIKE, "*6");
-        
-        List<Person> execute = from.execute();
-        System.out.println(JSONObject.toJSONString(execute));
+        select.addConditionAggs(EnumEsAggs.GROUPBY,"age",null)
+            .addConditionAggs(EnumEsAggs.HAVING, null, 1)
+            .addConditionAggs(EnumEsAggs.SIZE, null, 5)
+            // 不传LIMIT和SORT参数时,默认不返回组内结果数据,仅返回分组数据
+            .addConditionAggs(EnumEsAggs.LIMIT, null, 3)
+            .addConditionAggs(EnumEsAggs.SORT, "age", EnumSort.ASC)
+            .addConditionAggsNest(EnumEsAggs.GROUPBYDATE,"date_time","second")
+            .addConditionAggsNest(EnumEsAggs.HAVING, null, 1)
+            .addConditionAggsNest(EnumEsAggs.SIZE, null, 5)
+            // 不传LIMIT和SORT参数时,默认不返回组内结果数据,仅返回分组数据
+            .addConditionAggsNest(EnumEsAggs.LIMIT, null, 3)
+            .addConditionAggsNest(EnumEsAggs.SORT, "age", EnumSort.ASC);
+    
+        System.out.println(select.executeAggs());
     }
     
     /**
@@ -88,6 +98,8 @@ public class SelectTest {
     public static void test2() {
         Select<Person> select = Select.from(Person.class, dataSource);
         
+        select.addSource("age", "hobby");// 添加返回数据字段
+        
         select.addConditionAggs(EnumEsAggs.GROUPBY, "age,hobby", null) // 根据age、hobby字段对数据进行分组
             .addConditionAggs(EnumEsAggs.HAVING, null, 1)
             .addConditionAggs(EnumEsAggs.SIZE, null, 5)
@@ -106,11 +118,13 @@ public class SelectTest {
     public static void test3() {
         Select<Person> select = Select.from(Person.class, dataSource);
         
-        select.addCondition("age", EnumFilter.NOT_EMPTY); // 过滤条件
-        select.addConditionAggs(EnumEsAggs.GROUPBYDATE, null, "day"); // 按天分组(只能丢date类型字段使用)
+        select.addSource("age", "hobby");// 添加返回数据字段
         
-        List<Person> execute = select.execute();
-        System.out.println(JSONObject.toJSONString(execute));
+        select.addCondition("age", EnumFilter.NOT_EMPTY); // 过滤条件
+        select.addConditionAggs(EnumEsAggs.GROUPBYDATE, "date_time", "day") // 按天分组(只能date类型字段使用)
+        ;
+        String s = select.executeAggs();
+        System.out.println(s);
     }
     
     /**
@@ -129,5 +143,21 @@ public class SelectTest {
             }
         }
         System.out.println(count);
+    }
+    
+    public static void test5() {
+        Select<Person> select = Select.from(Person.class, dataSource);
+        
+        select.addConditionAggs(EnumEsAggs.GROUPBYDATE, "date_time", "second")
+            .addConditionAggsNest(EnumEsAggs.GROUPBY, "age,hobby", null)
+            .addConditionAggsNest(EnumEsAggs.HAVING, null, 1)
+            .addConditionAggsNest(EnumEsAggs.SIZE, null, 5)
+            // 不传LIMIT和SORT参数时,默认不返回组内结果数据,仅返回分组数据
+            .addConditionAggsNest(EnumEsAggs.LIMIT, null, 3)
+            .addConditionAggsNest(EnumEsAggs.SORT, "age", EnumSort.ASC);
+        
+        String s = select.executeAggs();
+        
+        System.out.println(s);
     }
 }

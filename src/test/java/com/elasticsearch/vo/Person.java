@@ -16,6 +16,9 @@ public class Person extends Parent {
     @Propertie(PropertieName = "hobby")
     String hobby;
     
+    @Propertie(PropertieName = "date_time")
+    long dateTime;
+    
     public static void main(String[] args) {
         
         Person person = new Person();
