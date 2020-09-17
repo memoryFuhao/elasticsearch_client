@@ -78,6 +78,8 @@ public class EsAggsQueryUtil {
     private JSONObject createAggsVo(List<ConditionAggs> conditionAggsList,
         List<String> sourceList) {
         JSONObject aggsVo = new JSONObject();
+        boolean groupByDateFlag = checkGroupType(conditionAggsList, EnumEsAggs.GROUPBYDATE);
+        boolean groupByFlag = checkGroupType(conditionAggsList, EnumEsAggs.GROUPBY);
         for (int i = 0; i < conditionAggsList.size(); i++) {
             ConditionAggs conditionAggs = conditionAggsList.get(i);
             String opt = conditionAggs.getEsAggsEnum().getOpt();
@@ -87,16 +89,35 @@ public class EsAggsQueryUtil {
                 || EnumEsAggs.LIMIT.getOpt().equalsIgnoreCase(opt)
                 || EnumEsAggs.SORT.getOpt().equalsIgnoreCase(opt)
                 || EnumEsAggs.SIZE.getOpt().equalsIgnoreCase(opt)) {
-                
-                createAggsQueryByGroupField(conditionAggs, aggsVo);
+                if (groupByFlag) {
+                    createAggsQueryByGroupField(conditionAggs, aggsVo);
+                }
             }
             
             if (EnumEsAggs.GROUPBYDATE.toString().equalsIgnoreCase(opt)) {
-                createAggsQueryByGroupDate(conditionAggs, aggsVo);
+                if (groupByDateFlag) {
+                    createAggsQueryByGroupDate(conditionAggs, aggsVo);
+                }
             }
         }
         addSource(aggsVo, sourceList);
         return aggsVo;
+    }
+    
+    /**
+     * 检查分组条件是否包含指定分组类型
+     *
+     * @param conditionAggsList 分组条件集合
+     * @param enumEsAggs 分组类型
+     * @return 包含:true  不包含:false
+     */
+    private boolean checkGroupType(List<ConditionAggs> conditionAggsList, EnumEsAggs enumEsAggs) {
+        for (ConditionAggs conditionAggs : conditionAggsList) {
+            if (enumEsAggs.equals(conditionAggs.getEsAggsEnum())) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
