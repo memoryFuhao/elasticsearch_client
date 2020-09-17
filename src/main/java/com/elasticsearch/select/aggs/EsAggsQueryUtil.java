@@ -296,25 +296,18 @@ public class EsAggsQueryUtil {
         aggsVo.put(groupByStr, parentJsonObject);
     }
     
-    private JSONArray analysisAggs(JSONObject jsonResultParent, JSONObject jsonAggs,
+    private JSONObject analysisAggs(JSONObject jsonResultParent, JSONObject aggregations,
         String groupByStr) {
         
         JSONArray jsonResultSub = new JSONArray();
-        JSONObject aggregations = jsonAggs.getJSONObject("aggregations");
-        if (null == aggregations) {
-            return jsonResultSub;
-        }
-        
         JSONObject groupByField = aggregations.getJSONObject(groupByStr);
         if (null == groupByField) {
-            return jsonResultSub;
+            return jsonResultParent;
         }
-        
         JSONArray buckets = groupByField.getJSONArray("buckets");
         if (null == buckets) {
-            return jsonResultSub;
+            return jsonResultParent;
         }
-        
         for (int i = 0; i < buckets.size(); i++) {
             JSONObject jsonResultBucket = new JSONObject();
             
@@ -322,6 +315,10 @@ public class EsAggsQueryUtil {
             String groupByKey = bucketsJSONObject.getString("key");
             Long groupByCount = bucketsJSONObject.getLong("doc_count");
             JSONObject top = bucketsJSONObject.getJSONObject(EnumEsKeyword.TOP.getOpt());
+            
+            //递归解析分组结果
+            analysisAggs(jsonResultBucket, bucketsJSONObject, EnumEsKeyword.GROUPBY_FIELD.getOpt());
+            analysisAggs(jsonResultBucket, bucketsJSONObject, EnumEsKeyword.GROUPBY_DATE.getOpt());
             
             if (null != top) {
                 JSONObject parentHits = top.getJSONObject(EnumEsKeyword.HITS.getOpt());
@@ -343,18 +340,18 @@ public class EsAggsQueryUtil {
         jsonResultParent.put(groupByStr + "TotalCount", buckets.size());
         jsonResultParent.put(groupByStr + "List", jsonResultSub);
         
-        return jsonResultSub;
-        
+        return jsonResultParent;
     }
     
     private JSONObject getResult(JSONObject jsonObject) {
         JSONObject jsonResultParent = createResponse("0", "Success");
         
         try {
-            
-            analysisAggs(jsonResultParent, jsonObject, EnumEsKeyword.GROUPBY_FIELD.getOpt());
-            analysisAggs(jsonResultParent, jsonObject, EnumEsKeyword.GROUPBY_DATE.getOpt());
-            
+            JSONObject aggregations = jsonObject.getJSONObject(EnumEsKeyword.AGGREGATIONS.getOpt());
+            if (null != aggregations) {
+                analysisAggs(jsonResultParent, aggregations, EnumEsKeyword.GROUPBY_FIELD.getOpt());
+                analysisAggs(jsonResultParent, aggregations, EnumEsKeyword.GROUPBY_DATE.getOpt());
+            }
         } catch (Exception e) {
             log.error("======analysis groupBy query result exception:", e);
             jsonResultParent = createResponse("-1", "Fail");
