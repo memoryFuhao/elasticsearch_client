@@ -25,6 +25,7 @@ public enum EnumEsKeyword {
     SCROLL_ID("scroll_id"),
     _SCROLL_ID("_scroll_id"),
     VALUE("value"),
+    AGGREGATIONS("aggregations"),
     GROUPBY_FIELD("groupByField"),
     GROUPBY_DATE("groupByDate");
     
