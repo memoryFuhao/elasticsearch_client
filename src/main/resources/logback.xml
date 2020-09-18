@@ -2,7 +2,7 @@
 <!-- scan配置文件如果发生改变，将会被重新加载 ,60s刷新一次-->
 <configuration debug="false" scan="true" scanPeriod="60 seconds">
     <springProperty scope="context" name="springAppName" source="spring.application.name"/>
-	<contextName>elasticsearch_client_logback</contextName>
+	<contextName>elasticsearch_client_frame</contextName>
 	<!--<springProperty scope="context" name="totalSizeCap" source="log.totalSizeCap"/>
 	<springProperty scope="context" name="maxFileSize" source="log.maxFileSize"/>
 	<springProperty scope="context" name="maxHistory" source="log.MaxHistory"/>-->
@@ -23,11 +23,11 @@
 			<level>ERROR</level>
 		</filter>
 		<!-- 正在记录的日志文件的路径及文件名 -->
-		<file>${log.path}/${springAppName}_error.log</file>
+		<file>${log.path}/elasticsearch_client_frame_error.log</file>
 		<!-- 日志记录器的滚动策略，按日期，按大小记录 -->
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- 归档的日志文件的路径， 而2013-12-21的日志文件在由fileNamePattern指定。%d{yyyy-MM-dd}指定日期格式，%i指定索引 -->
-			<fileNamePattern>${log.path}/${springAppName}_error.log-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+			<fileNamePattern>${log.path}/elasticsearch_client_frame_error.log-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
 			<!-- 除按日志记录之外，还配置了日志文件不能超过2M，若超过2M，日志文件会以索引0开始， 命名日志文件，例如log-error-2013-12-21-0.log -->
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<maxFileSize>${maxFileSize}</maxFileSize>
@@ -44,11 +44,11 @@
 	<!-- Log file info output -->
 	<appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<!-- 正在记录的日志文件的路径及文件名 -->
-		<file>${log.path}/${springAppName}_info.log</file>
+		<file>${log.path}/elasticsearch_client_frame_info.log</file>
 		<!-- 日志记录器的滚动策略，按日期，按大小记录 -->
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- 归档的日志文件的路径， 而2013-12-21的日志文件在由fileNamePattern指定。%d{yyyy-MM-dd}指定日期格式，%i指定索引 -->
-			<fileNamePattern>${log.path}/${springAppName}_info.log-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+			<fileNamePattern>${log.path}/elasticsearch_client_frame_info.log-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
 			<!-- 除按日志记录之外，还配置了日志文件不能超过2M，若超过2M，日志文件会以索引0开始， 命名日志文件，例如log-error-2013-12-21-0.log -->
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<maxFileSize>${maxFileSize}</maxFileSize>
