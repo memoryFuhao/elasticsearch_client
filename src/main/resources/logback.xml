@@ -2,7 +2,7 @@
 <!-- scan配置文件如果发生改变，将会被重新加载 ,60s刷新一次-->
 <configuration debug="false" scan="true" scanPeriod="60 seconds">
     <!--<springProperty scope="context" name="springAppName" source="spring.application.name"/>-->
-    <!--<contextName>elasticsearch_client_frame</contextName>-->
+    <contextName>elasticsearch_client</contextName>
     <!--<springProperty scope="context" name="totalSizeCap" source="log.totalSizeCap"/>
     <springProperty scope="context" name="maxFileSize" source="log.maxFileSize"/>
     <springProperty scope="context" name="maxHistory" source="log.MaxHistory"/>-->
