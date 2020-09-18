@@ -2,71 +2,77 @@
 <!-- scan配置文件如果发生改变，将会被重新加载 ,60s刷新一次-->
 <configuration debug="false" scan="true" scanPeriod="60 seconds">
     <!--<springProperty scope="context" name="springAppName" source="spring.application.name"/>-->
-	<!--<contextName>elasticsearch_client_frame</contextName>-->
-	<!--<springProperty scope="context" name="totalSizeCap" source="log.totalSizeCap"/>
-	<springProperty scope="context" name="maxFileSize" source="log.maxFileSize"/>
-	<springProperty scope="context" name="maxHistory" source="log.MaxHistory"/>-->
-	<property name="log.path" value="logs" />
-	<property name="totalSizeCap" value="10MB" />
-	<property name="maxFileSize" value="1MB" />
-	<property name="maxHistory" value="30" />
-	<!-- Console log output -->
-	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-		<encoder>
-			<pattern>%date %-5level [%logger{60}] Line:%-3L - %msg%n</pattern>
-		</encoder>
-	</appender>
+    <!--<contextName>elasticsearch_client_frame</contextName>-->
+    <!--<springProperty scope="context" name="totalSizeCap" source="log.totalSizeCap"/>
+    <springProperty scope="context" name="maxFileSize" source="log.maxFileSize"/>
+    <springProperty scope="context" name="maxHistory" source="log.MaxHistory"/>-->
+    <property name="log.path" value="logs"/>
+    <property name="totalSizeCap" value="10MB"/>
+    <property name="maxFileSize" value="1MB"/>
+    <property name="maxHistory" value="30"/>
+    <property name="log.header" value="elasticsearch_client_frame"/>
+    <!-- Console log output -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date %-5level [%logger{60}] Line:%-3L - %msg%n</pattern>
+        </encoder>
+    </appender>
 
-	<!-- Log file error output -->
-	<appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter" onMatch="ACCEPT">
-			<level>ERROR</level>
-		</filter>
-		<!-- 正在记录的日志文件的路径及文件名 -->
-		<file>${log.path}/elasticsearch_client_frame_error.log</file>
-		<!-- 日志记录器的滚动策略，按日期，按大小记录 -->
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<!-- 归档的日志文件的路径， 而2013-12-21的日志文件在由fileNamePattern指定。%d{yyyy-MM-dd}指定日期格式，%i指定索引 -->
-			<fileNamePattern>${log.path}/elasticsearch_client_frame_error.log-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
-			<!-- 除按日志记录之外，还配置了日志文件不能超过2M，若超过2M，日志文件会以索引0开始， 命名日志文件，例如log-error-2013-12-21-0.log -->
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>${maxFileSize}</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<!-- 日志文件保留天数 -->
-			<MaxHistory>${maxHistory}</MaxHistory>
-			<totalSizeCap>${totalSizeCap}</totalSizeCap>
-		</rollingPolicy>
-		<encoder>
-			<pattern>%date [%contextName] %-5level [%logger{60}] Line:%-3L - %msg%n</pattern>
-		</encoder>
-	</appender>
+    <!-- Log file error output -->
+    <appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter" onMatch="ACCEPT">
+            <level>ERROR</level>
+        </filter>
+        <!-- 正在记录的日志文件的路径及文件名 -->
+        <file>${log.path}/${log.header}_error.log</file>
+        <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 归档的日志文件的路径， 而2013-12-21的日志文件在由fileNamePattern指定。%d{yyyy-MM-dd}指定日期格式，%i指定索引 -->
+            <fileNamePattern>
+                ${log.path}/${log.header}_error.log-%d{yyyy-MM-dd}-%i.log
+            </fileNamePattern>
+            <!-- 除按日志记录之外，还配置了日志文件不能超过2M，若超过2M，日志文件会以索引0开始， 命名日志文件，例如log-error-2013-12-21-0.log -->
+            <timeBasedFileNamingAndTriggeringPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${maxFileSize}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- 日志文件保留天数 -->
+            <MaxHistory>${maxHistory}</MaxHistory>
+            <totalSizeCap>${totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date [%contextName] %-5level [%logger{60}] Line:%-3L - %msg%n</pattern>
+        </encoder>
+    </appender>
 
-	<!-- Log file info output -->
-	<appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<!-- 正在记录的日志文件的路径及文件名 -->
-		<file>${log.path}/elasticsearch_client_frame_info.log</file>
-		<!-- 日志记录器的滚动策略，按日期，按大小记录 -->
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<!-- 归档的日志文件的路径， 而2013-12-21的日志文件在由fileNamePattern指定。%d{yyyy-MM-dd}指定日期格式，%i指定索引 -->
-			<fileNamePattern>${log.path}/elasticsearch_client_frame_info.log-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
-			<!-- 除按日志记录之外，还配置了日志文件不能超过2M，若超过2M，日志文件会以索引0开始， 命名日志文件，例如log-error-2013-12-21-0.log -->
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>${maxFileSize}</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-			<!-- 日志文件保留天数 -->
-			<MaxHistory>${maxHistory}</MaxHistory>
-			<totalSizeCap>${totalSizeCap}</totalSizeCap>
-		</rollingPolicy>
-		<encoder>
-			<pattern>%date [%contextName] %-5level [%logger{60}] Line:%-3L - %msg%n</pattern>
-		</encoder>
-	</appender>
+    <!-- Log file info output -->
+    <appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 正在记录的日志文件的路径及文件名 -->
+        <file>${log.path}/${log.header}_info.log</file>
+        <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 归档的日志文件的路径， 而2013-12-21的日志文件在由fileNamePattern指定。%d{yyyy-MM-dd}指定日期格式，%i指定索引 -->
+            <fileNamePattern>${log.path}/${log.header}_info.log-%d{yyyy-MM-dd}-%i.log
+            </fileNamePattern>
+            <!-- 除按日志记录之外，还配置了日志文件不能超过2M，若超过2M，日志文件会以索引0开始， 命名日志文件，例如log-error-2013-12-21-0.log -->
+            <timeBasedFileNamingAndTriggeringPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${maxFileSize}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- 日志文件保留天数 -->
+            <MaxHistory>${maxHistory}</MaxHistory>
+            <totalSizeCap>${totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date [%contextName] %-5level [%logger{60}] Line:%-3L - %msg%n</pattern>
+        </encoder>
+    </appender>
 
 
-	<!-- Level: FATAL 0 ERROR 3 WARN 4 INFO 6 DEBUG 7 -->
-	<root level="INFO">
-		<appender-ref ref="console" />
-		<appender-ref ref="info" />
-		<appender-ref ref="error" />
-	</root>
+    <!-- Level: FATAL 0 ERROR 3 WARN 4 INFO 6 DEBUG 7 -->
+    <root level="INFO">
+        <appender-ref ref="console"/>
+        <appender-ref ref="info"/>
+        <appender-ref ref="error"/>
+    </root>
 </configuration>
