@@ -73,6 +73,7 @@ public class Select<T> extends Operation {
      */
     
     public String executeAggs() {
+        long startTime = System.currentTimeMillis();
         JSONObject jsonObject = analysisParaJson();
         jsonObject.put(EnumEsKeyword.SIZE.getOpt(), 0);// 分组查询不需要返回结果数据
         DataSource ds = this.getDataSource();
@@ -81,6 +82,9 @@ public class Select<T> extends Operation {
             .aggsQuery(this.conditionAggsList, this.conditionAggsNestList, jsonObject,
                 getIndexNameStr(), ds.getIps()[anInt], ds.getPort(), this.getHeaderMap(),
                 sourceList);
+        long endTime = System.currentTimeMillis();
+        log.info("======Select.executeAggs() startTime is {}, endTime is {}, costTime is {}:",
+            startTime, endTime, endTime - startTime);
         return result;
     }
     
@@ -141,7 +145,7 @@ public class Select<T> extends Operation {
      * @return 结果数据集合
      */
     public List<T> execute() {
-        
+        long startTime = System.currentTimeMillis();
         String postBody = analysisParaJson().toJSONString();
         String url = getUrl("_search");
         log.info("====【Select execute】 url is:{} \n postBody is: {}", url, postBody);
@@ -204,6 +208,9 @@ public class Select<T> extends Operation {
         } catch (Exception e) {
             log.error("====execute exception,url :{} body:{}", url, postBody, e);
         }
+        long endTime = System.currentTimeMillis();
+        log.info("======Select.execute() startTime is {}, endTime is {}, costTime is {}:",
+            startTime, endTime, endTime - startTime);
         return lists;
     }
     
