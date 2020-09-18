@@ -83,7 +83,7 @@ public class Select<T> extends Operation {
                 getIndexNameStr(), ds.getIps()[anInt], ds.getPort(), this.getHeaderMap(),
                 sourceList);
         long endTime = System.currentTimeMillis();
-        log.info("======Select.executeAggs() startTime is {}, endTime is {}, costTime is {}:",
+        log.info("====【Select.executeAggs】 startTime is {}, endTime is {}, costTime is {}:",
             startTime, endTime, endTime - startTime);
         return result;
     }
@@ -157,13 +157,7 @@ public class Select<T> extends Operation {
                 
                 JSONObject hits = jsonObject.getJSONObject(EnumEsKeyword.HITS.getOpt());
                 JSONArray hitsArray = hits.getJSONArray(EnumEsKeyword.HITS.getOpt());
-                for (int i = 0; i < hitsArray.size(); i++) {
-                    JSONObject object = hitsArray.getJSONObject(i);
-                    String source = object.getString(EnumEsKeyword.SOURCE.getOpt());
-                    String sourceRes = analysisSource(source);
-                    T o = (T) JSONObject.parseObject(sourceRes, this.getVo().getClass());
-                    lists.add(o);
-                }
+                analysisHitsArray(hitsArray, lists);
             } else {
                 Page page = this.getPage();
                 int requestCount = page.getRequestCount();
@@ -195,13 +189,7 @@ public class Select<T> extends Operation {
                             (end < start) ? hitsArray : hitsArray.subList(start, end);
                         JSONArray hitsArraySub = JSONArray
                             .parseArray(JSONObject.toJSONString(objects));
-                        for (int j = 0; j < hitsArraySub.size(); j++) {
-                            JSONObject object = hitsArraySub.getJSONObject(j);
-                            String source = object.getString(EnumEsKeyword.SOURCE.getOpt());
-                            String sourceRes = analysisSource(source);
-                            T o = (T) JSONObject.parseObject(sourceRes, this.getVo().getClass());
-                            lists.add(o);
-                        }
+                        analysisHitsArray(hitsArraySub, lists);
                     }
                 }
             }
@@ -209,7 +197,7 @@ public class Select<T> extends Operation {
             log.error("====execute exception,url :{} body:{}", url, postBody, e);
         }
         long endTime = System.currentTimeMillis();
-        log.info("======Select.execute() startTime is {}, endTime is {}, costTime is {}:",
+        log.info("====【Select.execute】 startTime is {}, endTime is {}, costTime is {}:",
             startTime, endTime, endTime - startTime);
         return lists;
     }
@@ -219,6 +207,19 @@ public class Select<T> extends Operation {
      */
     public void clear() {
         this.esScrollQueryUtil.clear();
+    }
+    
+    /**
+     * 解析结果数据中 Hits数组
+     */
+    private void analysisHitsArray(JSONArray hitsArray, List<T> lists) {
+        for (int j = 0; j < hitsArray.size(); j++) {
+            JSONObject object = hitsArray.getJSONObject(j);
+            String source = object.getString(EnumEsKeyword.SOURCE.getOpt());
+            String sourceRes = analysisSource(source);
+            T o = (T) JSONObject.parseObject(sourceRes, this.getVo().getClass());
+            lists.add(o);
+        }
     }
     
     /**
