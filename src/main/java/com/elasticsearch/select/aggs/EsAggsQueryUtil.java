@@ -216,7 +216,7 @@ public class EsAggsQueryUtil {
         
         jsonObjectSub.put(EnumEsKeyword.FIELD.getOpt(), field);
         jsonObjectSub.put("interval", value);
-        
+        jsonObjectSub.put("time_zone", "+08:00");
         groupByDate.put("date_histogram", jsonObjectSub);
         
         aggsVo.put(EnumEsKeyword.GROUPBY_DATE.getOpt(), groupByDate);
