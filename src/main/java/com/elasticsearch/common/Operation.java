@@ -165,7 +165,6 @@ public abstract class Operation<T> {
      */
     protected JSONObject analysisParaJson() {
         JSONObject parJson = createParJson();
-        Map<Integer, List<Condition>> conditionsMap = getConditionsMap();
         for (Map.Entry<Integer, List<Condition>> entry : conditionsMap.entrySet()) {
             JSONObject baseJson = createBaseJson(EnumEsKeyword.MUST);
             List<Condition> conditions = entry.getValue();
