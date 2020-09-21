@@ -107,7 +107,7 @@ public class Select<T> extends Operation {
                 .queryData(getIndexNameStr(), ds.getIps()[anInt], ds.getPort(), Page.SCROLL,
                     this.getHeaderMap(), jsonObject, size);
             for (JSONObject jsonVo : list) {
-                String sourceRes = analysisSource(jsonVo.toJSONString());
+                String sourceRes = analysisSource(jsonVo);
                 T o = (T) JSONObject.parseObject(sourceRes, this.getVo().getClass());
                 lists.add(o);
             }
@@ -215,7 +215,7 @@ public class Select<T> extends Operation {
     private void analysisHitsArray(JSONArray hitsArray, List<T> lists) {
         for (int j = 0; j < hitsArray.size(); j++) {
             JSONObject object = hitsArray.getJSONObject(j);
-            String source = object.getString(EnumEsKeyword.SOURCE.getOpt());
+            JSONObject source = object.getJSONObject(EnumEsKeyword.SOURCE.getOpt());
             String sourceRes = analysisSource(source);
             T o = (T) JSONObject.parseObject(sourceRes, this.getVo().getClass());
             lists.add(o);
@@ -225,10 +225,9 @@ public class Select<T> extends Operation {
     /**
      * 解析json串，将对象属性和注解对应
      */
-    private String analysisSource(String source) {
+    private String analysisSource(JSONObject source) {
         JSONObject result = new JSONObject();
-        JSONObject sourceJson = JSONObject.parseObject(source);
-        Set<Entry<String, Object>> entries = sourceJson.entrySet();
+        Set<Entry<String, Object>> entries = source.entrySet();
         Map<String, String> anMap = getAnFieldMap();
         for (Entry<String, Object> entry : entries) {
             String key = entry.getKey();
