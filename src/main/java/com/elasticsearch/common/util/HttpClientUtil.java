@@ -33,32 +33,26 @@ public class HttpClientUtil {
             .build();
     }
     
-    public static String doPost(String url, String JSONBody, Map<String, String> headerMap) {
+    public static String doPost(String url, String jsonBody, Map<String, String> headerMap) {
         HttpPost httpPost = new HttpPost(url);
         addRequestHeader(httpPost, headerMap);
         
-        if (StringUtils.isNotEmpty(JSONBody)) {
-            httpPost.setEntity(new StringEntity(JSONBody, EN_CODED));
+        if (StringUtils.isNotEmpty(jsonBody)) {
+            httpPost.setEntity(new StringEntity(jsonBody, EN_CODED));
         }
-        
-        String responseContent = execute(httpPost);
-        return responseContent;
+        return execute(httpPost);
     }
     
     public static String doGet(String url, Map<String, String> headerMap) {
         HttpGet httpGet = new HttpGet(url);
         addRequestHeader(httpGet, headerMap);
-        
-        String responseContent = execute(httpGet);
-        return responseContent;
+        return execute(httpGet);
     }
     
     public static String doDelete(String url, Map<String, String> headerMap) {
         HttpDelete httpDelete = new HttpDelete(url);
         addRequestHeader(httpDelete, headerMap);
-        
-        String responseContent = execute(httpDelete);
-        return responseContent;
+        return execute(httpDelete);
     }
     
     /**

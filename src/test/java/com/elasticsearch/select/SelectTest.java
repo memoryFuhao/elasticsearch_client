@@ -7,22 +7,27 @@ import com.elasticsearch.common.enums.EnumSort;
 import com.elasticsearch.common.vo.DataSource;
 import com.elasticsearch.common.vo.Page;
 import com.elasticsearch.vo.Person;
+import java.util.Date;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by memory_fu on 2020/9/11.
  */
+@Slf4j
 public class SelectTest {
     
     public static DataSource dataSource = new DataSource("172.16.1.119", "elastic", "123456");
     
     public static void main(String[] args) {
+
 //        tempTest();
-         test1();
+//        test1();
+//        test2();
 //        test3();
 //        test4();
 //        test5();
-//        test6();
+        test6();
     }
     
     public static void tempTest() {
@@ -67,7 +72,7 @@ public class SelectTest {
             .addCondition("hobby", EnumFilter.LIKE, "*88*")//模糊查询
             .addCondition("hobby", EnumFilter.NO_LIKE, "*40");//no like查询
 //        log.info("====Select.from time is {}", System.currentTimeMillis() - start);
-    
+        
         long t2 = System.currentTimeMillis();
         
         // and or类型查询 eg: a=1 and (age=15 or age=16)
@@ -81,10 +86,10 @@ public class SelectTest {
         
         select.addSort("age", EnumSort.ASC); // 排序
         select.addSource("name", "age"); // 限制返回数据字段内容,减少网络传输数据,提高性能
-    
-        Page page = new Page(20,1); // 分页查询参数设置
-        select.setPage(page);
         
+        Page page = new Page(20, 1); // 分页查询参数设置
+        select.setPage(page);
+
 //        log.info("====select.addCondition time is {}", System.currentTimeMillis() - t2);
         
         long t3 = System.currentTimeMillis();
@@ -174,10 +179,11 @@ public class SelectTest {
         Select<Person> select = Select.from(Person.class, dataSource);
         
         select.addConditionAggs(EnumEsAggs.GROUPBY, "age,hobby", null)
-            .addConditionAggsNest(EnumEsAggs.GROUPBYDATE, "date_time", "second");
+            .addConditionAggsNest(EnumEsAggs.GROUPBYDATE, "date_time", "hour");
         
         String s = select.executeAggs();
         
-        System.out.println(s);
+        log.info(s);
+        
     }
 }

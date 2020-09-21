@@ -147,10 +147,8 @@ public abstract class Operation<T> {
      */
     protected String getScrollUrl() {
         int anInt = RandomUtil.getInt(dataSource.getIps().length);
-        String url =
-            dataSource.getProtocol() + "://" + dataSource.getIps()[anInt] + ":" + dataSource
-                .getPort() + "/_search/scroll";
-        return url;
+        return dataSource.getProtocol() + "://" + dataSource.getIps()[anInt] + ":" + dataSource
+            .getPort() + "/_search/scroll";
     }
     
     /**
@@ -159,8 +157,7 @@ public abstract class Operation<T> {
      * @return 10000条数据内true  10000条数据外false
      */
     protected boolean judgePage() {
-        return this.page.getPageNum() * this.page.getPageSize() < Page.MAX_DATA_COUNT ? true
-            : false;
+        return this.page.getPageNum() * this.page.getPageSize() < Page.MAX_DATA_COUNT;
     }
     
     /**
@@ -465,8 +462,7 @@ public abstract class Operation<T> {
                 objects = Lists.newArrayList(fieldValue);
             }
         }
-        Condition condition = new Condition(fieldName, enumFilter, objects);
-        return condition;
+        return new Condition(fieldName, enumFilter, objects);
     }
     
     /**

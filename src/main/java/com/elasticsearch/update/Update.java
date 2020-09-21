@@ -1,5 +1,6 @@
 package com.elasticsearch.update;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.elasticsearch.common.Operation;
 import com.elasticsearch.common.enums.EnumEsKeyword;
@@ -44,7 +45,7 @@ public class Update<T> extends Operation {
         String res = null;
         try {
             res = HttpClientUtil.doPost(url, postBody, this.getHeaderMap());
-            JSONObject resJsonObject = JSONObject.parseObject(res);
+            JSONObject resJsonObject = JSON.parseObject(res);
             long updated = resJsonObject.getLongValue("updated");
             result.put("updated", updated);
         } catch (Exception e) {

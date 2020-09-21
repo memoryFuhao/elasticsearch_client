@@ -1,5 +1,6 @@
 package com.elasticsearch.select.aggs;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
@@ -164,19 +165,18 @@ public class EsAggsQueryUtil {
      * @param requestUrl 请求url
      */
     private String getResponseStr(JSONObject boolVo, JSONObject aggsVo, String requestUrl,
-        Map<String, String> headerMap) throws Exception {
+        Map<String, String> headerMap) {
         
         String result;
         // 组装请求参数
         JSONObject jsonObject = createRequestBody(boolVo, aggsVo);
-        log.info("======request body:" + JSONObject.toJSONString(jsonObject));
+        log.info("======request body:" + JSON.toJSONString(jsonObject));
         String httpResopnseStr = HttpClientUtil
             .doPost(requestUrl, jsonObject.toJSONString(), headerMap);
         
         // 解析请求结果
-        JSONObject resultStr = getResult(JSONObject.parseObject(httpResopnseStr));
-        result = JSONObject
-            .toJSONString(resultStr, SerializerFeature.DisableCircularReferenceDetect);
+        JSONObject resultStr = getResult(JSON.parseObject(httpResopnseStr));
+        result = JSON.toJSONString(resultStr, SerializerFeature.DisableCircularReferenceDetect);
         return result;
     }
     
@@ -244,12 +244,12 @@ public class EsAggsQueryUtil {
             
             if (EnumEsAggs.GROUPBY.toString().equalsIgnoreCase(type)) {
                 String[] fields = field.split(SPLIT);
-                String scriptStr = "";
+                StringBuilder scriptStr = new StringBuilder();
                 for (String tempField : fields) {
-                    scriptStr += "doc." + tempField + "+''+";
+                    scriptStr.append("doc." + tempField + "+''+");
                 }
-                scriptStr = scriptStr.substring(0, scriptStr.length() - 4);
-                jsonObjectParent.put(EnumEsKeyword.SCRIPT.getOpt(), scriptStr);
+                String substring = scriptStr.substring(0, scriptStr.length() - 4);
+                jsonObjectParent.put(EnumEsKeyword.SCRIPT.getOpt(), substring);
                 jsonGroupByField.put(EnumFilter.TERMS.getOpt(), jsonObjectParent);
             }
             

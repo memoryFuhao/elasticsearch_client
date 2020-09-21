@@ -33,8 +33,7 @@ public class DateUtil {
     public static String getDateStr(int day) {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -day);
-        String yesterday = new SimpleDateFormat("yyyyMMdd").format(cal.getTime());
-        return yesterday;
+        return new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(cal.getTime());
     }
     
     /**
@@ -71,7 +70,7 @@ public class DateUtil {
         return dateFormatterTwo.format(date);
     }
     
-    public static String getDateStr(String timeMillons, String outRegex) throws ParseException {
+    public static String getDateStr(String timeMillons, String outRegex) {
         Long dateMillions = Math.round(Double.valueOf(timeMillons) * 1000);
         Date date = new Date(dateMillions);
         SimpleDateFormat dateFormatterTwo = new SimpleDateFormat(outRegex);
@@ -106,11 +105,11 @@ public class DateUtil {
     /**
      * 二月
      */
-    private static int MONTH_FEB = 2;
+    private static final int MONTH_FEB = 2;
     
-    private static int LEAP_YEAR_FOUR = 4;
-    private static int LEAP_YEAR_ONE_HUNRED = 100;
-    private static int LEAP_YEAR_FOUR_HUNDRED = 400;
+    private static final int LEAP_YEAR_FOUR = 4;
+    private static final int LEAP_YEAR_ONE_HUNRED = 100;
+    private static final int LEAP_YEAR_FOUR_HUNDRED = 400;
     
     /**
      * 获取月的最后一天
@@ -285,8 +284,7 @@ public class DateUtil {
         SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
         Date date = sdf.parse(dateStr);
         Date addMonths = DateUtils.addMonths(date, amount);
-        String result = sdf.format(addMonths);
-        return result;
+        return sdf.format(addMonths);
     }
     
     /**
@@ -294,15 +292,14 @@ public class DateUtil {
      *
      * @param dateStr yyyyMMdd
      * @param amount 为正增加月份，为负减少月份
-     * @param DEFAULT_DATE_FORMAT 格式化日期字符串格式
+     * @param ddf 格式化日期字符串格式
      */
-    public static String addMonths(String dateStr, int amount, String DEFAULT_DATE_FORMAT)
+    public static String addMonths(String dateStr, int amount, String ddf)
         throws ParseException {
-        SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
+        SimpleDateFormat sdf = new SimpleDateFormat(ddf);
         Date date = sdf.parse(dateStr);
         Date addMonths = DateUtils.addMonths(date, amount);
-        String result = sdf.format(addMonths);
-        return result;
+        return sdf.format(addMonths);
     }
     
     /**
@@ -315,35 +312,26 @@ public class DateUtil {
         SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
         Date date = sdf.parse(dateStr);
         Date addDays = DateUtils.addDays(date, amount);
-        String result = sdf.format(addDays);
-        return result;
+        return sdf.format(addDays);
     }
     
     /**
      * 根据时间字符串获取时间戳
-     * @param dateStr
-     * @param ddfStr
-     * @return
      */
-    public static long getTimeLong(String dateStr,String ddfStr) throws ParseException {
+    public static long getTimeLong(String dateStr, String ddfStr) throws ParseException {
         String ddf = ddfStr;
-        if(StringUtils.isEmpty(ddf)){
+        if (StringUtils.isEmpty(ddf)) {
             ddf = DEFAULT_DATE_FORMAT;
         }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ddf);
-    
-        long time = simpleDateFormat.parse(dateStr).getTime();
-        return time;
+        return simpleDateFormat.parse(dateStr).getTime();
     }
     
     /**
      * 根据时间字符串获取时间戳
-     * @param dateStr
-     * @return
-     * @throws ParseException
      */
     public static long getTimeLong(String dateStr) throws ParseException {
-        return getTimeLong(dateStr,null);
+        return getTimeLong(dateStr, null);
     }
     
     

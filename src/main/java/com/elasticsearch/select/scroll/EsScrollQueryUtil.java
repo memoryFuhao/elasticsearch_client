@@ -1,5 +1,6 @@
 package com.elasticsearch.select.scroll;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.elasticsearch.common.enums.EnumEsKeyword;
@@ -30,14 +31,13 @@ public class EsScrollQueryUtil {
      * @param size 每次查询es数据条数
      */
     public List<JSONObject> queryData(String indexName, String ip, String port, String scrollTime,
-        Map<String, String> headerMap, JSONObject queryObj, int size)
-        throws Exception {
+        Map<String, String> headerMap, JSONObject queryObj, int size) {
         
         List<JSONObject> result = Lists.newArrayList();
         if (StringUtils.isEmpty(this.scrollId)) {
             result = getScrollId(indexName, ip, port, scrollTime, headerMap, queryObj, size);
         } else {
-            result = getScrollData(indexName, ip, port, scrollTime, headerMap, size);
+            result = getScrollData(indexName, ip, port, scrollTime, headerMap);
         }
         return result;
     }
@@ -50,8 +50,7 @@ public class EsScrollQueryUtil {
     }
     
     private List<JSONObject> getScrollId(String indexName, String ip, String port,
-        String scrollTime, Map<String, String> headerMap, JSONObject queryObj, int size)
-        throws Exception {
+        String scrollTime, Map<String, String> headerMap, JSONObject queryObj, int size) {
         // 获取srcollId和数据
         String url = getUrl(indexName, ip, port, scrollTime);
         queryObj.put(EnumEsKeyword.SIZE.getOpt(), size);
@@ -61,13 +60,11 @@ public class EsScrollQueryUtil {
         
         String queryStr = queryObj.toJSONString();
         String responseStr = HttpClientUtil.doPost(url, queryStr, headerMap);
-        List<JSONObject> analysisData = analysisData(responseStr);
-        
-        return analysisData;
+        return analysisData(responseStr);
     }
     
     private List<JSONObject> getScrollData(String indexName, String ip, String port,
-        String scrollTime, Map<String, String> headerMap, int size) throws Exception {
+        String scrollTime, Map<String, String> headerMap) {
         
         String url = getUrl(indexName, ip, port, scrollTime);
         
@@ -78,14 +75,13 @@ public class EsScrollQueryUtil {
         log.info("====scroll query url is:{} \n queryStr is:{}", url, queryStr);
         
         String responseStr = HttpClientUtil.doPost(url, queryStr, headerMap);
-        List<JSONObject> analysisData = analysisData(responseStr);
-        return analysisData;
+        return analysisData(responseStr);
     }
     
     private List<JSONObject> analysisData(String responseStr) {
         List<JSONObject> list = new ArrayList<>();
         
-        JSONObject jsonObject = JSONObject.parseObject(responseStr);
+        JSONObject jsonObject = JSON.parseObject(responseStr);
         if (null == jsonObject) {
             return list;
         }
@@ -117,10 +113,9 @@ public class EsScrollQueryUtil {
      */
     private String getUrl(String indexName, String ip, String port, String scrollTime) {
         if (StringUtils.isEmpty(this.scrollId)) {
-            return new String("http://" + ip + ":" + port + "/" + indexName + "/_search?scroll="
-                + scrollTime);
+            return "http://" + ip + ":" + port + "/" + indexName + "/_search?scroll=" + scrollTime;
         }
-        return new String("http://" + ip + ":" + port + "/_search/scroll");
+        return "http://" + ip + ":" + port + "/_search/scroll";
     }
     
 }

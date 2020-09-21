@@ -1,5 +1,6 @@
 package com.elasticsearch.delete;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.elasticsearch.common.Operation;
 import com.elasticsearch.common.enums.EnumEsKeyword;
@@ -38,9 +39,9 @@ public class Delete<T> extends Operation {
         String res = null;
         try {
             res = HttpClientUtil.doPost(url, postBody, this.getHeaderMap());
-            JSONObject resJsonObject = JSONObject.parseObject(res);
-            long deleted = resJsonObject.getLongValue("deleted");
-            result.put("deleted", deleted);
+            JSONObject resJsonObject = JSON.parseObject(res);
+            long deleted = resJsonObject.getLongValue(EnumEsKeyword.DELETED.getOpt());
+            result.put(EnumEsKeyword.DELETED.getOpt(), deleted);
         } catch (Exception e) {
             result = createResponse("-1", "Fail");
             result.put("errMessage", res);
@@ -62,14 +63,14 @@ public class Delete<T> extends Operation {
         String res = null;
         try {
             res = HttpClientUtil.doDelete(url, this.getHeaderMap());
-            JSONObject resJsonObject = JSONObject.parseObject(res);
+            JSONObject resJsonObject = JSON.parseObject(res);
             
             String deletedStr = resJsonObject.getString("result");
             int deleted = 0;
-            if ("deleted".equalsIgnoreCase(deletedStr)) {
+            if (EnumEsKeyword.DELETED.getOpt().equalsIgnoreCase(deletedStr)) {
                 deleted = 1;// 删除成功
             }
-            result.put("deleted", deleted);
+            result.put(EnumEsKeyword.DELETED.getOpt(), deleted);
         } catch (Exception e) {
             result = createResponse("-1", "Fail");
             result.put("errMessage", res);

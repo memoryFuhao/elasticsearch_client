@@ -1,5 +1,6 @@
 package com.elasticsearch.insert;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.elasticsearch.common.Operation;
 import com.elasticsearch.common.util.HttpClientUtil;
@@ -7,6 +8,7 @@ import com.elasticsearch.common.util.RandomUtil;
 import com.elasticsearch.common.vo.DataSource;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -19,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 public class Insert<T> extends Operation {
     
-    private StringBuffer postBody = new StringBuffer();
+    private StringBuilder postBody = new StringBuilder();
     
     public static <T> Insert<T> from(Class<T> tClass, DataSource dataSource) {
         Insert insert = new Insert();
@@ -33,13 +35,14 @@ public class Insert<T> extends Operation {
      * @param vo 数据对象
      */
     public void add(T vo) {
-        String s = JSONObject.toJSONString(vo);
-        JSONObject jsonVo = JSONObject.parseObject(s);
+        String s = JSON.toJSONString(vo);
+        JSONObject jsonVo = JSON.parseObject(s);
         
         Map<String, String> fieldAnMap = getFieldAnMap();
         JSONObject jsonObject = new JSONObject();
         Object id = null;
-        for (String key : jsonVo.keySet()) {
+        for (Entry<String, Object> entry : jsonVo.entrySet()) {
+            String key = entry.getKey();
             String anVal = fieldAnMap.get(key);
             Object val = jsonVo.get(key);
             if ("_id".equalsIgnoreCase(anVal)) {
@@ -90,7 +93,7 @@ public class Insert<T> extends Operation {
         String url = getUrl("_bulk?pretty");
         try {
             response = HttpClientUtil.doPost(url, this.postBody.toString(), this.getHeaderMap());
-            JSONObject jsonObject = JSONObject.parseObject(response);
+            JSONObject jsonObject = JSON.parseObject(response);
             String errors = jsonObject.getString("errors");
             if (StringUtils.isNotEmpty(errors) && !Boolean.valueOf(errors)) {
                 count = jsonObject.getJSONArray("items").size();
@@ -109,10 +112,8 @@ public class Insert<T> extends Operation {
     public String getUrl(String type) {
         DataSource dataSource = this.getDataSource();
         int anInt = RandomUtil.getInt(dataSource.getIps().length);
-        String url =
-            dataSource.getProtocol() + "://" + dataSource.getIps()[anInt] + ":" + dataSource
-                .getPort() + "/" + type;
-        return url;
+        return dataSource.getProtocol() + "://" + dataSource.getIps()[anInt] + ":" + dataSource
+            .getPort() + "/" + type;
     }
     
 }

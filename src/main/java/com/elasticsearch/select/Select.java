@@ -1,5 +1,6 @@
 package com.elasticsearch.select;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.elasticsearch.common.Operation;
@@ -108,7 +109,7 @@ public class Select<T> extends Operation {
                     this.getHeaderMap(), jsonObject, size);
             for (JSONObject jsonVo : list) {
                 String sourceRes = analysisSource(jsonVo);
-                T o = (T) JSONObject.parseObject(sourceRes, this.getVo().getClass());
+                T o = (T) JSON.parseObject(sourceRes, this.getVo().getClass());
                 lists.add(o);
             }
         } catch (Exception e) {
@@ -129,7 +130,7 @@ public class Select<T> extends Operation {
         log.info("====getTotalCount url is:{} \n postBody is: {}", url, postBody);
         try {
             String s = HttpClientUtil.doPost(url, postBody, this.getHeaderMap());
-            JSONObject jsonObject = JSONObject.parseObject(s);
+            JSONObject jsonObject = JSON.parseObject(s);
             JSONObject hits = jsonObject.getJSONObject(EnumEsKeyword.HITS.getOpt());
             
             result = hits.getLongValue(EnumEsKeyword.TOTAL.getOpt());
@@ -153,7 +154,7 @@ public class Select<T> extends Operation {
         try {
             if (judgePage()) {
                 String s = HttpClientUtil.doPost(url, postBody, this.getHeaderMap());
-                JSONObject jsonObject = JSONObject.parseObject(s);
+                JSONObject jsonObject = JSON.parseObject(s);
                 
                 JSONObject hits = jsonObject.getJSONObject(EnumEsKeyword.HITS.getOpt());
                 JSONArray hitsArray = hits.getJSONArray(EnumEsKeyword.HITS.getOpt());
@@ -166,13 +167,13 @@ public class Select<T> extends Operation {
                 for (int i = 1; i <= requestCount; i++) {
                     String s = HttpClientUtil.doPost(url, postBody, this.getHeaderMap());
                     count += Page.SCROLL_SIZE;
-                    JSONObject jsonObject = JSONObject.parseObject(s);
+                    JSONObject jsonObject = JSON.parseObject(s);
                     if (i == 1) {
                         scrollId = jsonObject.getString(EnumEsKeyword._SCROLL_ID.getOpt());
-                        JSONObject scroll_id = new JSONObject();
-                        scroll_id.put(EnumEsKeyword.SCROLL_ID.getOpt(), scrollId);
-                        scroll_id.put(EnumEsKeyword.SCROLL.getOpt(), page.SCROLL);
-                        postBody = scroll_id.toJSONString();
+                        JSONObject scrollIdJson = new JSONObject();
+                        scrollIdJson.put(EnumEsKeyword.SCROLL_ID.getOpt(), scrollId);
+                        scrollIdJson.put(EnumEsKeyword.SCROLL.getOpt(), page.SCROLL);
+                        postBody = scrollIdJson.toJSONString();
                         url = getScrollUrl();
                     } else {
                         if (count < page.getFrom()) {
@@ -187,8 +188,7 @@ public class Select<T> extends Operation {
                         
                         List<Object> objects =
                             (end < start) ? hitsArray : hitsArray.subList(start, end);
-                        JSONArray hitsArraySub = JSONArray
-                            .parseArray(JSONObject.toJSONString(objects));
+                        JSONArray hitsArraySub = JSON.parseArray(JSON.toJSONString(objects));
                         analysisHitsArray(hitsArraySub, lists);
                     }
                 }
@@ -217,7 +217,7 @@ public class Select<T> extends Operation {
             JSONObject object = hitsArray.getJSONObject(j);
             JSONObject source = object.getJSONObject(EnumEsKeyword.SOURCE.getOpt());
             String sourceRes = analysisSource(source);
-            T o = (T) JSONObject.parseObject(sourceRes, this.getVo().getClass());
+            T o = (T) JSON.parseObject(sourceRes, this.getVo().getClass());
             lists.add(o);
         }
     }

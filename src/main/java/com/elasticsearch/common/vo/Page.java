@@ -39,7 +39,6 @@ public class Page {
      * 深度分页时，计算出 es深度分页时http请求次数 & es深度分页时丢弃的数据批次
      */
     private void setPagePreBatch() {
-        
         int res = this.getPageSize() * this.getPageNum() / this.SCROLL_SIZE;
         int i = this.getPageSize() * this.getPageNum() % this.SCROLL_SIZE;
         

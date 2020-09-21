@@ -27,7 +27,8 @@ public enum EnumEsKeyword {
     VALUE("value"),
     AGGREGATIONS("aggregations"),
     GROUPBY_FIELD("groupByField"),
-    GROUPBY_DATE("groupByDate");
+    GROUPBY_DATE("groupByDate"),
+    DELETED("deleted");
     
     private String opt;
     
@@ -39,7 +40,4 @@ public enum EnumEsKeyword {
         return this.opt;
     }
     
-    public static void main(String[] args) {
-        System.out.println(EnumEsKeyword.MUST.getOpt());
-    }
 }
