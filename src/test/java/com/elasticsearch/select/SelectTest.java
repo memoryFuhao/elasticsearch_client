@@ -18,8 +18,7 @@ public class SelectTest {
     
     public static void main(String[] args) {
 //        tempTest();
-        test1();
-//        test2();
+         test1();
 //        test3();
 //        test4();
 //        test5();
@@ -55,21 +54,21 @@ public class SelectTest {
     public static void test1() {
         long start = System.currentTimeMillis();
         Select<Person> select = Select.from(Person.class, dataSource);
+        select.addCondition("age", EnumFilter.RANGE, 0, 100)//范围查询
+            .addCondition("_index", EnumFilter.TERMS, "person_index")//in查询
+            .addCondition("_type", EnumFilter.TERM, "data")//等于查询
+            .addCondition("_type", EnumFilter.NQ, "data1")//不等于查询
+            .addCondition("age", EnumFilter.NOT_EMPTY)//不为空查询
+            .addCondition("id", EnumFilter.EMPTY)//为空查询
+            .addCondition("age", EnumFilter.GT, -1)//大于查询
+            .addCondition("age", EnumFilter.LT, 101)//小于查询
+            .addCondition("age", EnumFilter.GTE, 0)//大于等于查询
+            .addCondition("age", EnumFilter.LTE, 100)//小于等于查询
+            .addCondition("hobby", EnumFilter.LIKE, "*88*")//模糊查询
+            .addCondition("hobby", EnumFilter.NO_LIKE, "*40");//no like查询
 //        log.info("====Select.from time is {}", System.currentTimeMillis() - start);
-        
+    
         long t2 = System.currentTimeMillis();
-        select.addCondition("age", EnumFilter.RANGE, 0, 100)
-            .addCondition("hobby", EnumFilter.LIKE, "*88*")
-            .addCondition("_type", EnumFilter.TERM, "data")
-            .addCondition("_index", EnumFilter.TERMS, "person_index")
-            .addCondition("age", EnumFilter.NOT_EMPTY)
-            .addCondition("id", EnumFilter.EMPTY)
-            .addCondition("_type", EnumFilter.NQ, "data1")
-            .addCondition("age", EnumFilter.GT, -1)
-            .addCondition("age", EnumFilter.LT, 101)
-            .addCondition("age", EnumFilter.GTE, 0)
-            .addCondition("age", EnumFilter.LTE, 100)
-            .addCondition("hobby", EnumFilter.NO_LIKE, "*40");
         
         // and or类型查询 eg: a=1 and (age=15 or age=16)
         select.addConditionShould("age", EnumFilter.TERM, 15);
@@ -81,7 +80,6 @@ public class SelectTest {
         select.addCondition("age", EnumFilter.TERM, 1111);
         
         select.addSort("age", EnumSort.ASC); // 排序
-        
         select.addSource("name", "age"); // 限制返回数据字段内容,减少网络传输数据,提高性能
     
         Page page = new Page(20,1); // 分页查询参数设置

@@ -5,8 +5,8 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>elasticsearch-client</groupId>
-    <artifactId>com.memoryfu.frame</artifactId>
+    <groupId>com.memoryfu.frame</groupId>
+    <artifactId>elasticsearch-client</artifactId>
     <version>1.0.0</version>
 
     <name>com.memoryfu.frame</name>
