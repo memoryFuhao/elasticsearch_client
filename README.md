@@ -1,7 +1,5 @@
 # elasticsearch_client (elasticsearch orm frame)
 ---------------------------------------------------------
-代码中有用到lombok插件,开发工具需安装.
----------------------------------------------------------
 
  /**
   * 数据插入(插入对象为src/test/com.elasticsearch.vo.Person)
