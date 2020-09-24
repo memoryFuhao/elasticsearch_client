@@ -93,7 +93,7 @@ public class EsAggsQueryUtil {
                 createAggsQueryByGroupField(conditionAggs, aggsVo);
             }
             
-            if (EnumEsAggs.GROUPBYDATE.toString().equalsIgnoreCase(opt) && groupByDateFlag) {
+            if (groupByDateFlag && EnumEsAggs.GROUPBYDATE.toString().equalsIgnoreCase(opt)) {
                 createAggsQueryByGroupDate(conditionAggs, aggsVo);
             }
         }
@@ -298,18 +298,14 @@ public class EsAggsQueryUtil {
     }
     
     private void createDefaultAggs(JSONObject aggsVo, String groupByStr) {
-        
         JSONObject jsonObject = aggsVo.getJSONObject(groupByStr);
         
         if (null != jsonObject) {
             return;
         }
-        
         JSONObject parentJsonObject = new JSONObject();
         JSONObject aggsJsonObject = new JSONObject();
-        
         parentJsonObject.put(EnumEsKeyword.AGGS.getOpt(), aggsJsonObject);
-        
         aggsVo.put(groupByStr, parentJsonObject);
     }
     
