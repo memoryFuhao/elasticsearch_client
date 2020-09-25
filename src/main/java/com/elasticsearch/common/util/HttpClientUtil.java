@@ -1,6 +1,5 @@
 package com.elasticsearch.common.util;
 
-import java.io.IOException;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
@@ -72,8 +71,10 @@ public class HttpClientUtil {
             log.error("====HttpClientUtil.execute() exception:", e);
         } finally {
             try {
-                response.close();
-            } catch (IOException e) {
+                if (null != response) {
+                    response.close();
+                }
+            } catch (Exception e) {
                 log.error("====response.close() exception:", e);
             }
         }
