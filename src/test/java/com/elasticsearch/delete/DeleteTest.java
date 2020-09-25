@@ -1,11 +1,8 @@
 package com.elasticsearch.delete;
 
-import static com.elasticsearch.insert.InsertTest.dataSource;
-import static org.junit.Assert.*;
-
 import com.elasticsearch.common.enums.EnumFilter;
 import com.elasticsearch.common.vo.DataSource;
-import com.elasticsearch.vo.Person;
+import com.elasticsearch.po.Person;
 
 /**
  * Created by memory_fu on 2020/9/14.

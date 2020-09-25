@@ -1,10 +1,7 @@
-package com.elasticsearch.vo;
+package com.elasticsearch.po;
 
 import com.elasticsearch.common.annotation.Index;
 import com.elasticsearch.common.annotation.Propertie;
-import com.elasticsearch.common.enums.EnumEsAggs;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import lombok.Data;
 
 /**

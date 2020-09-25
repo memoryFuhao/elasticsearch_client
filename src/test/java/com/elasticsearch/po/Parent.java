@@ -1,4 +1,4 @@
-package com.elasticsearch.vo;
+package com.elasticsearch.po;
 
 import com.elasticsearch.common.annotation.Index;
 import com.elasticsearch.common.annotation.Propertie;

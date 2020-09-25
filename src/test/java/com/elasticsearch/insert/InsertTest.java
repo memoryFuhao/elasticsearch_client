@@ -1,10 +1,9 @@
 package com.elasticsearch.insert;
 
 import com.elasticsearch.common.vo.DataSource;
-import com.elasticsearch.vo.Person;
+import com.elasticsearch.po.Person;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -22,8 +21,8 @@ public class InsertTest {
     public static DataSource dataSource = new DataSource("172.16.1.119", "elastic", "123456");
     
     public static void main(String[] args) {
-//        test1();
-        test2();
+        test1();
+//        test2();
     }
     
     /**
@@ -64,6 +63,8 @@ public class InsertTest {
             Future<?> submit = savePool.submit(() -> insertData());
             objects.add(submit);
         }
+        
+        savePool.shutdown();
         
         for (Future<?> future : objects) {
             try {
