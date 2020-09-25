@@ -123,9 +123,7 @@ public abstract class Operation<T> {
             headerMap.put("Authorization", auth);
             this.indexNameStr = getIndexName();
             objAndAnnotationMap();
-        } catch (InstantiationException e) {
-            log.error("[{} 对象构建失败]", tClass, e);
-        } catch (IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             log.error("[{} 对象构建失败]", tClass, e);
         }
     }
