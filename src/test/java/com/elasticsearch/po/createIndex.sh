@@ -23,3 +23,24 @@ curl -H "Content-Type: application/json" -H "Authorization: Basic ZWxhc3RpYzoxMj
         }
     }
 }'
+
+curl -H "Content-Type: application/json" -H "Authorization: Basic ZWxhc3RpYzoxMjM0NTY=" -XPUT "http://172.16.1.119:9200/my_join_index" -d'
+{
+    "mappings": {
+        "data": {
+            "properties": {
+                "join_field": {
+                    "type": "join",
+                    "relations": {
+                        "father": "son"
+                    }
+                },
+                "name": {
+                    "type": "keyword",
+                    "index": "true"
+                }
+            }
+        }
+    }
+}
+'

@@ -41,6 +41,7 @@ public class Insert<T> extends Operation {
         Map<String, String> fieldAnMap = getFieldAnMap();
         JSONObject jsonObject = new JSONObject();
         Object id = null;
+        Object parentId = null;
         for (Entry<String, Object> entry : jsonVo.entrySet()) {
             String key = entry.getKey();
             String anVal = fieldAnMap.get(key);
@@ -49,8 +50,11 @@ public class Insert<T> extends Operation {
                 id = val;
                 continue;
             }
+            if ("join_field".equalsIgnoreCase(anVal)) {
+                parentId = checkHasSon(val);
+            }
             if (StringUtils.isNotEmpty(anVal)) {
-                jsonObject.put(anVal, val);
+                jsonObject.put(anVal, JSON.toJSON(val));
             }
         }
         
@@ -59,6 +63,9 @@ public class Insert<T> extends Operation {
         jsonIndex.put("_type", "data");
         if (null != id) {
             jsonIndex.put("_id", id);
+        }
+        if (null != parentId) {
+            jsonIndex.put("_routing", parentId);
         }
         JSONObject jsonIndexParent = new JSONObject();
         jsonIndexParent.put("index", jsonIndex);
@@ -114,6 +121,23 @@ public class Insert<T> extends Operation {
         int anInt = RandomUtil.getInt(dataSource.getIps().length);
         return dataSource.getProtocol() + "://" + dataSource.getIps()[anInt] + ":" + dataSource
             .getPort() + "/" + type;
+    }
+    
+    /**
+     * 判断是否为子数据插入
+     *
+     * @param val 值
+     * @return 是子类数据则返回parentId(父数据ID) 否则返回null
+     */
+    private Object checkHasSon(Object val) {
+        Object parentId = null;
+        try {
+            JSONObject tempJson = JSON.parseObject(JSON.toJSONString(val));
+            parentId = tempJson.get("parent");
+        } catch (Exception e) {
+            log.debug("====Insert Object has parent.");
+        }
+        return parentId;
     }
     
 }

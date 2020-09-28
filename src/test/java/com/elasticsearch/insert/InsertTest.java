@@ -2,6 +2,8 @@ package com.elasticsearch.insert;
 
 import com.elasticsearch.common.vo.DataSource;
 import com.elasticsearch.po.Person;
+import com.elasticsearch.po.joinPo.MyJoinIndex;
+import com.elasticsearch.po.joinPo.SonObject;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.Date;
@@ -21,8 +23,32 @@ public class InsertTest {
     public static DataSource dataSource = new DataSource("172.16.1.119", "elastic", "123456");
     
     public static void main(String[] args) {
-        test1();
+        tempTest();
+//        test1();
 //        test2();
+    }
+    
+    public static void tempTest() {
+        Insert<MyJoinIndex> from = Insert.from(MyJoinIndex.class, dataSource);
+    
+        //插入父数据
+        MyJoinIndex myJoinIndex1 = new MyJoinIndex();
+        myJoinIndex1.setName("傅浩");
+        myJoinIndex1.setJoinField("father");
+        from.add(myJoinIndex1);
+        from.execute();
+        
+        //插入子数据
+        MyJoinIndex myJoinIndex = new MyJoinIndex();
+        myJoinIndex.setName("蓝贱");
+        SonObject sonObject = new SonObject();
+        sonObject.setName("son");
+        sonObject.setParent("1");
+        myJoinIndex.setJoinField(sonObject);
+        
+        from.add(myJoinIndex);
+        int execute = from.execute();
+    
     }
     
     /**
@@ -31,8 +57,8 @@ public class InsertTest {
     public static void test1() {
         long startTime = System.currentTimeMillis();
         Insert<Person> from = Insert.from(Person.class, dataSource);
-        for (int j = 0; j < 50; j++) {
-            for (int i = 0; i < 10000; i++) {
+        for (int j = 0; j < 1; j++) {
+            for (int i = 0; i < 2; i++) {
                 Person person = new Person();
 //            person.setId(i + "");
                 person.setHobby("兴趣爱好:" + i);
