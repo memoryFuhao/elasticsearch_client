@@ -108,8 +108,10 @@ public class InsertTest {
         myJoinIndex1.setJoinField("father");
         myJoinIndex1.setId("123");
         from.add(myJoinIndex1);
-        from.execute();
+        int execute1 = from.execute();
+        System.out.println(execute1);
         
+    
         //插入子数据
         MyJoinIndex myJoinIndex = new MyJoinIndex();
         myJoinIndex.setName("蓝贱");
