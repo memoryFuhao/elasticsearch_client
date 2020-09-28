@@ -11,6 +11,9 @@ import lombok.Data;
 @Index(IndexName = "my_join_index")
 public class MyJoinIndex {
     
+    @Propertie(PropertieName = "_id")
+    String id;
+    
     @Propertie(PropertieName = "name")
     String name;
     

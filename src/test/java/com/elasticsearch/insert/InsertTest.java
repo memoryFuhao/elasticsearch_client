@@ -106,6 +106,7 @@ public class InsertTest {
         MyJoinIndex myJoinIndex1 = new MyJoinIndex();
         myJoinIndex1.setName("傅浩");
         myJoinIndex1.setJoinField("father");
+        myJoinIndex1.setId("123");
         from.add(myJoinIndex1);
         from.execute();
         
@@ -114,7 +115,7 @@ public class InsertTest {
         myJoinIndex.setName("蓝贱");
         SonObject sonObject = new SonObject();
         sonObject.setName("son");
-        sonObject.setParent("1");
+        sonObject.setParent("123");
         myJoinIndex.setJoinField(sonObject);
         
         from.add(myJoinIndex);
