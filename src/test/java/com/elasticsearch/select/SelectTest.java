@@ -26,7 +26,8 @@ public class SelectTest {
 //        test3();
 //        test4();
 //        test5();
-        test6();
+//        test6();
+        test7();
     }
     
     public static void tempTest() {
@@ -184,5 +185,15 @@ public class SelectTest {
         
         log.info(s);
         
+    }
+    
+    /**
+     * 自定义查询DSL语句查询
+     */
+    public static void test7() {
+        Select<Person> select = Select.from(Person.class, dataSource);
+        String s = select
+            .executeDSL("{\"query\": {\"bool\": {\"must\": [{\"term\": {\"_type\": \"data\"}}]}}}");
+        log.info(s);
     }
 }

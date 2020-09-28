@@ -23,32 +23,9 @@ public class InsertTest {
     public static DataSource dataSource = new DataSource("172.16.1.119", "elastic", "123456");
     
     public static void main(String[] args) {
-        tempTest();
 //        test1();
 //        test2();
-    }
-    
-    public static void tempTest() {
-        Insert<MyJoinIndex> from = Insert.from(MyJoinIndex.class, dataSource);
-    
-        //插入父数据
-        MyJoinIndex myJoinIndex1 = new MyJoinIndex();
-        myJoinIndex1.setName("傅浩");
-        myJoinIndex1.setJoinField("father");
-        from.add(myJoinIndex1);
-        from.execute();
-        
-        //插入子数据
-        MyJoinIndex myJoinIndex = new MyJoinIndex();
-        myJoinIndex.setName("蓝贱");
-        SonObject sonObject = new SonObject();
-        sonObject.setName("son");
-        sonObject.setParent("1");
-        myJoinIndex.setJoinField(sonObject);
-        
-        from.add(myJoinIndex);
-        int execute = from.execute();
-    
+        test3();
     }
     
     /**
@@ -57,8 +34,8 @@ public class InsertTest {
     public static void test1() {
         long startTime = System.currentTimeMillis();
         Insert<Person> from = Insert.from(Person.class, dataSource);
-        for (int j = 0; j < 1; j++) {
-            for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 10; j++) {
+            for (int i = 0; i < 20; i++) {
                 Person person = new Person();
 //            person.setId(i + "");
                 person.setHobby("兴趣爱好:" + i);
@@ -116,6 +93,35 @@ public class InsertTest {
             from.add(person);
         }
         from.execute();
+    }
+    
+    /**
+     * 父子类数据插入
+     * (插入父对象为com.elasticsearch.po.joinPo.MyJoinIndex
+     * 插入子对象为com.elasticsearch.po.joinPo.SonObject)
+     */
+    public static void test3() {
+        Insert<MyJoinIndex> from = Insert.from(MyJoinIndex.class, dataSource);
+        
+        //插入父数据
+        MyJoinIndex myJoinIndex1 = new MyJoinIndex();
+        myJoinIndex1.setName("傅浩");
+        myJoinIndex1.setJoinField("father");
+        from.add(myJoinIndex1);
+        from.execute();
+        
+        //插入子数据
+        MyJoinIndex myJoinIndex = new MyJoinIndex();
+        myJoinIndex.setName("蓝贱");
+        SonObject sonObject = new SonObject();
+        sonObject.setName("son");
+        sonObject.setParent("1");
+        myJoinIndex.setJoinField(sonObject);
+        
+        from.add(myJoinIndex);
+        int execute = from.execute();
+        
+        System.out.println(execute);
     }
     
 }

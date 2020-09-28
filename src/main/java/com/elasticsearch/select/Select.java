@@ -141,6 +141,17 @@ public class Select<T> extends Operation {
     }
     
     /**
+     * 自定义DSL语句查询
+     *
+     * @param customDSL 自定义DSL语句
+     * @return elasticsearch返回字符串
+     */
+    public String executeDSL(String customDSL) {
+        String url = getUrl("_search");
+        return HttpClientUtil.doPost(url, customDSL, this.getHeaderMap());
+    }
+    
+    /**
      * 执行查询
      *
      * @return 结果数据集合
