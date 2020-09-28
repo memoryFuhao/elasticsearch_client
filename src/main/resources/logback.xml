@@ -6,7 +6,7 @@
     <!--<springProperty scope="context" name="totalSizeCap" source="log.totalSizeCap"/>
     <springProperty scope="context" name="maxFileSize" source="log.maxFileSize"/>
     <springProperty scope="context" name="maxHistory" source="log.MaxHistory"/>-->
-    <property name="log.path" value="logs"/>
+    <property name="log.path" value="logs/elasticsearch_client"/>
     <property name="totalSizeCap" value="10MB"/>
     <property name="maxFileSize" value="1MB"/>
     <property name="maxHistory" value="30"/>
