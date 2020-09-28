@@ -99,6 +99,7 @@ public class InsertTest {
      * 父子类数据插入
      * (插入父对象为com.elasticsearch.po.joinPo.MyJoinIndex
      * 插入子对象为com.elasticsearch.po.joinPo.SonObject)
+     * 索引为com.elasticsearch.po.createIndex.sh 中 my_join_index索引
      */
     public static void test3() {
         Insert<MyJoinIndex> from = Insert.from(MyJoinIndex.class, dataSource);

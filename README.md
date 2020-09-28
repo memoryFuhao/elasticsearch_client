@@ -2,8 +2,20 @@
 ---------------------------------------------------------
 
  /**
-  * 数据插入(插入对象为src/test/com.elasticsearch.vo.Person)
+  * 单线程数据插入(插入对象为src/test/com.elasticsearch.vo.Person)
   * 参考示例代码：src/test/com.elasticsearch.insert.InsertTest.test1()
+  */
+
+ /**
+  * 多线程数据插入(插入对象为src/test/com.elasticsearch.vo.Person)
+  * 参考示例代码：src/test/com.elasticsearch.insert.InsertTest.test2()
+  */
+
+ /**
+  * 父子类数据插入
+  *  (插入父对象为com.elasticsearch.po.joinPo.MyJoinIndex
+  *   插入子对象为com.elasticsearch.po.joinPo.SonObject)
+  * 参考示例代码：src/test/com.elasticsearch.insert.InsertTest.test3()
   */
 ---------------------------------------------------------
 
@@ -55,6 +67,11 @@
  /**
   * 嵌套分组查询(先根据字段分组,然后很据时间分组)
   * 参考示例代码：src/test/com.elasticsearch.select.SelectTest.test6()
+  */
+
+ /**
+  * 自定义查询DSL语句查询
+  * 参考示例代码：src/test/com.elasticsearch.select.SelectTest.test7()
   */
 ---------------------------------------------------------
 
