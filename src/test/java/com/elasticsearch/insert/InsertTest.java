@@ -72,9 +72,7 @@ public class InsertTest {
         for (Future<?> future : objects) {
             try {
                 Object o = future.get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }

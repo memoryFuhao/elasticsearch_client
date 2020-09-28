@@ -58,17 +58,7 @@ public class Insert<T> extends Operation {
             }
         }
         
-        JSONObject jsonIndex = new JSONObject();
-        jsonIndex.put("_index", this.getIndexNameStr());
-        jsonIndex.put("_type", "data");
-        if (null != id) {
-            jsonIndex.put("_id", id);
-        }
-        if (null != parentId) {
-            jsonIndex.put("_routing", parentId);
-        }
-        JSONObject jsonIndexParent = new JSONObject();
-        jsonIndexParent.put("index", jsonIndex);
+        JSONObject jsonIndexParent = createIndexJson(id, parentId);
         
         this.postBody =
             postBody.append(jsonIndexParent.toJSONString()).append("\n")
@@ -138,6 +128,28 @@ public class Insert<T> extends Operation {
             log.debug("====Insert Object has parent.");
         }
         return parentId;
+    }
+    
+    /**
+     * 构建批量插入Index json串
+     *
+     * @param id 数据id
+     * @param parentId 父数据id
+     */
+    private JSONObject createIndexJson(Object id, Object parentId) {
+        JSONObject jsonIndex = new JSONObject();
+        jsonIndex.put("_index", this.getIndexNameStr());
+        jsonIndex.put("_type", "data");
+        if (null != id) {
+            jsonIndex.put("_id", id);
+        }
+        if (null != parentId) {
+            jsonIndex.put("_routing", parentId);
+        }
+        JSONObject jsonIndexParent = new JSONObject();
+        jsonIndexParent.put("index", jsonIndex);
+        
+        return jsonIndexParent;
     }
     
 }
