@@ -15,6 +15,7 @@ public enum EnumFilter {
     NQ("must_not"),// 不等于
     LIKE("wildcard"),// like (用于must查询)
     NO_LIKE(""),// no like (用于must_not查询)
+    NOT_IN(""),// not in (用于must_not查询)
     NOT_EMPTY("exists"),// 存在
     EMPTY("not_exists");// 不存在
     

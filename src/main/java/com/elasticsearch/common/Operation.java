@@ -231,6 +231,9 @@ public abstract class Operation<T> {
         if (EnumFilter.EMPTY.equals(enumFilter)) {
             addMustNotJson = createExistsJson(condition);
         }
+        if (EnumFilter.NOT_IN.equals(enumFilter)) {
+            addMustNotJson = createNotInJson(condition);
+        }
         if (!addMustNotJson.isEmpty()) {
             addJsonObjectForMustNot(addMustNotJson, baseJson);
         }
@@ -325,6 +328,24 @@ public abstract class Operation<T> {
         existsJsonObject.put(EnumEsKeyword.FIELD.getOpt(), condition.getFieldName());
         jsonObject.put(EnumFilter.NOT_EMPTY.getOpt(), existsJsonObject);
         return jsonObject;
+    }
+    
+    /**
+     * 构建not in查询json串
+     */
+    private JSONObject createNotInJson(Condition condition) {
+        JSONObject notInJsonObject = new JSONObject();
+        JSONObject termsJsonObject = new JSONObject();
+        JSONArray fieldJsonArray = new JSONArray();
+        
+        List<Object> values = condition.getValues();
+        for (Object obj : values) {
+            fieldJsonArray.add(obj);
+        }
+        
+        termsJsonObject.put(condition.getFieldName(), fieldJsonArray);
+        notInJsonObject.put(EnumFilter.TERMS.getOpt(),termsJsonObject);
+        return notInJsonObject;
     }
     
     /**

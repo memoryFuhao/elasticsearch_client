@@ -23,9 +23,9 @@ public class InsertTest {
     public static DataSource dataSource = new DataSource("172.16.1.119", "elastic", "123456");
     
     public static void main(String[] args) {
-//        test1();
+        test1();
 //        test2();
-        test3();
+//        test3();
     }
     
     /**

@@ -1,5 +1,6 @@
 package com.elasticsearch.select;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.elasticsearch.common.enums.EnumEsAggs;
 import com.elasticsearch.common.enums.EnumFilter;
@@ -27,7 +28,15 @@ public class SelectTest {
 //        test4();
 //        test5();
 //        test6();
-        test7();
+//        test7();
+    
+        Select<Person> select = Select.from(Person.class, dataSource);
+        select.addCondition("age", EnumFilter.RANGE, 0, 100)//范围查询
+            .addCondition("_type", EnumFilter.NOT_IN, "data1","data2")//不等于查询
+            .addCondition("_index", EnumFilter.TERMS, "person_index");
+    
+        List<Person> execute = select.execute();
+        System.out.println(JSON.toJSONString(execute));
     }
     
     public static void tempTest() {
@@ -62,7 +71,7 @@ public class SelectTest {
         select.addCondition("age", EnumFilter.RANGE, 0, 100)//范围查询
             .addCondition("_index", EnumFilter.TERMS, "person_index")//in查询
             .addCondition("_type", EnumFilter.TERM, "data")//等于查询
-            .addCondition("_type", EnumFilter.NQ, "data1")//不等于查询
+            .addCondition("_type", EnumFilter.NQ, "data1")//不等于查询,两个参数表示范围
             .addCondition("age", EnumFilter.NOT_EMPTY)//不为空查询
             .addCondition("id", EnumFilter.EMPTY)//为空查询
             .addCondition("age", EnumFilter.GT, -1)//大于查询
