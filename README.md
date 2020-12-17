@@ -37,7 +37,7 @@
 ---------------------------------------------------------
 
  /**
-  * 条件组合查询(支持and、or、isNull、isNotNull、in、like、no_like、大于、大于等于、小于、小于等于、不等于、范围)
+  * 条件组合查询(支持and、or、isNull、isNotNull、in、not in、like、no_like、大于、大于等于、小于、小于等于、不等于、范围)
   * 支持 a=1 and (b=2 or b=3) 查询
   * 支持 ( a=1 and (b=2 or b=3)) or (a=2 and (b=1 or b =2)) 查询
   * 请自行进行查询组合,组合完成的json串请参看日志信息。

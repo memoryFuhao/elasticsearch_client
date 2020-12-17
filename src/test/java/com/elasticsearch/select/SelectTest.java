@@ -22,7 +22,7 @@ public class SelectTest {
     public static void main(String[] args) {
 
 //        tempTest();
-//        test1();
+        test1();
 //        test2();
 //        test3();
 //        test4();
@@ -30,13 +30,6 @@ public class SelectTest {
 //        test6();
 //        test7();
     
-        Select<Person> select = Select.from(Person.class, dataSource);
-        select.addCondition("age", EnumFilter.RANGE, 0, 100)//范围查询
-            .addCondition("_type", EnumFilter.NOT_IN, "data1","data2")//不等于查询
-            .addCondition("_index", EnumFilter.TERMS, "person_index");
-    
-        List<Person> execute = select.execute();
-        System.out.println(JSON.toJSONString(execute));
     }
     
     public static void tempTest() {
@@ -59,7 +52,7 @@ public class SelectTest {
     }
     
     /**
-     * 条件组合查询(支持and、or、isNull、isNotNull、in、like、no_like、大于、大于等于、小于、小于等于、不等于、范围)
+     * 条件组合查询(支持and、or、isNull、isNotNull、in、not in、like、no_like、大于、大于等于、小于、小于等于、不等于、范围)
      * 支持 a=1 and (b=2 or b=3) 查询
      * 支持 ( a=1 and (b=2 or b=3)) or (a=2 and (b=1 or b =2)) 查询
      *
@@ -70,8 +63,9 @@ public class SelectTest {
         Select<Person> select = Select.from(Person.class, dataSource);
         select.addCondition("age", EnumFilter.RANGE, 0, 100)//范围查询
             .addCondition("_index", EnumFilter.TERMS, "person_index")//in查询
+            .addCondition("_type", EnumFilter.NOT_IN, "data1","data2")// not in查询,支持单个或多个参数
             .addCondition("_type", EnumFilter.TERM, "data")//等于查询
-            .addCondition("_type", EnumFilter.NQ, "data1")//不等于查询,两个参数表示范围
+            .addCondition("_type", EnumFilter.NQ, "data1")//不等于查询,两个参数表示范围不等于
             .addCondition("age", EnumFilter.NOT_EMPTY)//不为空查询
             .addCondition("id", EnumFilter.EMPTY)//为空查询
             .addCondition("age", EnumFilter.GT, -1)//大于查询
