@@ -145,4 +145,15 @@
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>1000video</id>
+            <url>http://maven.loocme.com/repository/1000video-snapshot/</url>
+        </snapshotRepository>
+        <repository>
+            <id>1000video</id>
+            <url>http://maven.loocme.com/repository/1000video-release/</url>
+        </repository>
+    </distributionManagement>
 </project>
