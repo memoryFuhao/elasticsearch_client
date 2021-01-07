@@ -6,9 +6,12 @@ import com.elasticsearch.common.Operation;
 import com.elasticsearch.common.util.HttpClientUtil;
 import com.elasticsearch.common.util.RandomUtil;
 import com.elasticsearch.common.vo.DataSource;
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -35,34 +38,41 @@ public class Insert<T> extends Operation {
      * @param vo 数据对象
      */
     public void add(T vo) {
-        String s = JSON.toJSONString(vo);
-        JSONObject jsonVo = JSON.parseObject(s);
-        
-        Map<String, String> fieldAnMap = getFieldAnMap();
-        JSONObject jsonObject = new JSONObject();
-        Object id = null;
-        Object parentId = null;
-        for (Entry<String, Object> entry : jsonVo.entrySet()) {
-            String key = entry.getKey();
-            String anVal = fieldAnMap.get(key);
-            Object val = jsonVo.get(key);
-            if ("_id".equalsIgnoreCase(anVal)) {
-                id = val;
-                continue;
+        try {
+            
+            String s = JSON.toJSONString(vo);
+            JSONObject jsonVo = JSON.parseObject(s);
+
+//            JSONObject jsonVo = convertJSON(vo);
+            
+            Map<String, String> fieldAnMap = getFieldAnMap();
+            JSONObject jsonObject = new JSONObject();
+            Object id = null;
+            Object parentId = null;
+            for (Entry<String, Object> entry : jsonVo.entrySet()) {
+                String key = entry.getKey();
+                String anVal = fieldAnMap.get(key);
+                Object val = jsonVo.get(key);
+                if ("_id".equalsIgnoreCase(anVal)) {
+                    id = val;
+                    continue;
+                }
+                if ("join_field".equalsIgnoreCase(anVal)) {
+                    parentId = checkHasSon(val);
+                }
+                if (StringUtils.isNotEmpty(anVal)) {
+                    jsonObject.put(anVal, JSON.toJSON(val));
+                }
             }
-            if ("join_field".equalsIgnoreCase(anVal)) {
-                parentId = checkHasSon(val);
-            }
-            if (StringUtils.isNotEmpty(anVal)) {
-                jsonObject.put(anVal, JSON.toJSON(val));
-            }
+            
+            JSONObject jsonIndexParent = createIndexJson(id, parentId);
+            
+            this.postBody =
+                postBody.append(jsonIndexParent.toJSONString()).append("\n")
+                    .append(jsonObject.toJSONString()).append("\n");
+        } catch (Exception e) {
+            log.error("====Insert.add exception: ", e);
         }
-        
-        JSONObject jsonIndexParent = createIndexJson(id, parentId);
-        
-        this.postBody =
-            postBody.append(jsonIndexParent.toJSONString()).append("\n")
-                .append(jsonObject.toJSONString()).append("\n");
     }
     
     /**
@@ -150,6 +160,31 @@ public class Insert<T> extends Operation {
         jsonIndexParent.put("index", jsonIndex);
         
         return jsonIndexParent;
+    }
+    
+    
+    public static Map<String, Field[]> map = new HashMap<>();
+    
+    /**
+     * 对象转换为JSONObject对象
+     */
+    private JSONObject convertJSON(T vo) throws IllegalAccessException {
+        
+//        Field[] fields = map.get(vo.getClass().getName());
+//        if (null == fields) {
+//            fields = vo.getClass().getFields();
+//            map.put(vo.getClass().getName(), fields);
+//            System.out.println("=====put");
+//        }
+
+        Field[] fields = vo.getClass().getFields();
+        
+        JSONObject jsonObject = new JSONObject();
+        for (Field field : fields) {
+            jsonObject.put(field.getName(), field.get(vo));
+        }
+        
+        return jsonObject;
     }
     
 }

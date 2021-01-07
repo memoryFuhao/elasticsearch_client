@@ -7,7 +7,7 @@
 
     <groupId>com.memoryfu.frame</groupId>
     <artifactId>elasticsearch-client</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>com.memoryfu.frame</name>
     <!-- FIXME change it to the project's website -->
@@ -149,11 +149,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>1000video</id>
-            <url>http://maven.loocme.com/repository/1000video-snapshot/</url>
+            <url>http://218.76.35.70:42127/repository/1000video-snapshot/</url>
         </snapshotRepository>
         <repository>
             <id>1000video</id>
-            <url>http://maven.loocme.com/repository/1000video-release/</url>
+            <url>http://218.76.35.70:42127/repository/1000video-release/</url>
         </repository>
     </distributionManagement>
 </project>
